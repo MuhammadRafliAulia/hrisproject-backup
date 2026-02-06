@@ -67,16 +67,6 @@
         <h2>Selamat Datang, {{ auth()->user()->name }}!</h2>
         <p style="color:#475569; margin-top:12px;">Pilih menu di samping untuk mengelola Psikotest Online atau Database Karyawan.</p>
         
-        <div style="margin-top:24px; padding:16px; background:#f0fdf4; border-radius:6px; border-left:3px solid #10b981;">
-          <strong style="color:#065f46;">💡 Fitur Tersedia:</strong>
-          <ul style="margin:8px 0 0 0; color:#065f46; font-size:14px;">
-            <li>📋 Kelola bank soal psikotest</li>
-            <li>🔗 Generate link tes untuk peserta</li>
-            <li>📊 Lihat hasil tes peserta</li>
-            <li>👥 Kelola database karyawan</li>
-            <li>📥 Import data karyawan dari CSV</li>
-          </ul>
-        </div>
         <div style="margin-top:18px; display:flex; gap:10px;">
           <a href="https://hrmsystemapp.com/login" target="_blank" class="btn" style="flex:1; background:#0ea5ad;">🔒 HRMS</a>
           <a href="https://idfileshare.example.com" target="_blank" class="btn" style="flex:1; background:#0ea5ad;">📁 IDFileshare</a>

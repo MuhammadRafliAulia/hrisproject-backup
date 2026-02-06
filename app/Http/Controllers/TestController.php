@@ -75,61 +75,61 @@ class TestController extends Controller
     public function submit(Request $request, $token)
     {
         $response = ParticipantResponse::where('token', $token)->firstOrFail();
-
         $answers = $request->validate([
             'answers' => 'required|array',
             'participant_name' => 'required|string|max:255',
             'participant_email' => 'required|email|max:255',
         ]);
-
         $questions = $response->bank->questions;
         $score = 0;
         $responses = [];
-
         foreach ($questions as $question) {
             $userAnswer = $answers['answers'][$question->id] ?? null;
             $responses[$question->id] = $userAnswer;
-
             if ($question->type === 'text') {
-                // Case-insensitive text comparison
                 if (strtolower(trim($userAnswer)) === strtolower(trim($question->correct_answer_text))) {
                     $score++;
                 }
             } else {
-                // Multiple choice comparison
                 if ($userAnswer === $question->correct_answer) {
                     $score++;
                 }
             }
         }
-
         $totalQuestions = $questions->count();
         $percentage = $totalQuestions > 0 ? round(($score / $totalQuestions) * 100, 2) : 0;
 
-        $response->update([
-            'participant_name' => $answers['participant_name'],
-            'participant_email' => $answers['participant_email'],
-            'responses' => $responses,
-            'score' => $score,
-            'completed' => true,
-            'completed_at' => now(),
-        ]);
+        try {
+            $response->update([
+                'participant_name' => $answers['participant_name'],
+                'participant_email' => $answers['participant_email'],
+                'responses' => $responses,
+                'score' => $score,
+                'completed' => true,
+                'completed_at' => now(),
+            ]);
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', 'Gagal menyimpan hasil tes: ' . $e->getMessage());
+        }
 
-        return redirect()->route('test.result', $token)->with('score', $score)->with('total', $totalQuestions)->with('percentage', $percentage);
+        // Pastikan hasil masuk ke bank soal (relasi sudah otomatis)
+        // Redirect ke halaman terima kasih
+        return redirect()->route('test.thankyou', $token)->with('success', 'Tes berhasil diselesaikan!');
     }
 
     public function result($token)
     {
+        // Redirect ke halaman terima kasih saja
+        return redirect()->route('test.thankyou', $token);
+    }
+
+    // Halaman terima kasih sederhana
+    public function thankyou($token)
+    {
         $response = ParticipantResponse::where('token', $token)->firstOrFail();
         if (!$response->completed) {
-            return redirect()->route('test.show', $token)->with('warning', 'Silakan selesaikan tes terlebih dahulu.');
+            return redirect()->route('test.show', $token);
         }
-
-        $bank = $response->bank;
-        $questions = $bank->questions;
-        $total = $questions->count();
-        $percentage = $total > 0 ? round(($response->score / $total) * 100, 2) : 0;
-
-        return view('test.result', compact('response', 'bank', 'questions', 'total', 'percentage'));
+        return view('test.thankyou');
     }
 }

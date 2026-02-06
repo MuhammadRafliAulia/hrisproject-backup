@@ -215,6 +215,18 @@
         @csrf
         <button type="submit" class="btn btn-link">Generate Link</button>
       </form>
+
+      <hr style="margin:24px 0;">
+      <h2>Daftar Link Peserta</h2>
+      <ul style="padding-left:0;">
+        @foreach($links as $link)
+          <li style="margin-bottom:10px; list-style:none;">
+            <input type="text" value="{{ route('test.show', $link->token) }}" readonly style="width:70%; padding:6px; border-radius:4px; border:1px solid #cbd5e1; font-size:13px;">
+            <span style="font-size:12px; color:#64748b;">({{ $link->participant_email }})</span>
+            <button onclick="navigator.clipboard.writeText('{{ route('test.show', $link->token) }}')" type="button" class="btn btn-link" style="margin-left:8px;">Copy</button>
+          </li>
+        @endforeach
+      </ul>
     </div>
 
     <div class="card" style="text-align:right;">

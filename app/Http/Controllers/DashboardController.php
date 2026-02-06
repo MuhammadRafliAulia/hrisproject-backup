@@ -9,11 +9,11 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Get employees by jabatan (department)
+        // Get employees by dept (departemen)
         $employeesByDept = Employee::where('user_id', Auth::id())
-            ->selectRaw('jabatan, COUNT(*) as count')
-            ->groupBy('jabatan')
-            ->pluck('count', 'jabatan');
+            ->selectRaw('dept, COUNT(*) as count')
+            ->groupBy('dept')
+            ->pluck('count', 'dept');
 
         // Get employees by status
         $employeesByStatus = Employee::where('user_id', Auth::id())

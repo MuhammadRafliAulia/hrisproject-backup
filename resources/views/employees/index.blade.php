@@ -38,80 +38,75 @@
   </style>
 </head>
 <body>
-  <div class="sidebar">
-    <h2>Menu</h2>
-    <ul class="sidebar-menu">
-      <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
-      <li><a href="{{ route('banks.index') }}">📋 Psikotest Online</a></li>
-      <li><a href="{{ route('employees.index') }}" class="active">👥 Database Karyawan</a></li>
-    </ul>
-    
-    <div class="user-section">
-      <div class="user-name">👤 {{ auth()->user()->name }}</div>
-      <form method="POST" action="{{ route('logout') }}" style="margin:0;">
-        @csrf
-        <button type="submit" class="btn btn-danger btn-logout">Logout</button>
-      </form>
-    </div>
-  </div>
-
+  @include('layouts.sidebar')
   <div class="main">
     <div class="topbar">
       <h1>Database Karyawan</h1>
     </div>
-    
     <div class="content">
+        <a href="{{ route('employees.create') }}" class="btn" style="background:#003e6f;margin-bottom:18px;display:inline-block;">+ Tambah Karyawan</a>
       @if(session('success'))
         <div class="success">{{ session('success') }}</div>
       @endif
-
-      <div class="card">
-        <div class="header">
-          <h2>Daftar Karyawan ({{ $employees->count() }})</h2>
-          <div>
-            <a href="{{ route('employees.create') }}" class="btn btn-small">+ Tambah</a>
-            <a href="{{ route('employees.import-form') }}" class="btn btn-small btn-success">📥 Import</a>
-            <a href="{{ route('employees.export') }}" class="btn btn-small" style="background:#0ea5ad;">📊 Export</a>
-            <a href="{{ route('employees.template') }}" class="btn btn-small" style="background:#64748b;">⬇️ Template</a>
-          </div>
-        </div>
-
-        @if($employees->count() > 0)
-          <table>
-            <thead>
-              <tr>
-                <th>Nama</th>
-                <th>Jabatan</th>
-                <th>Status</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              @foreach($employees as $employee)
-                <tr>
-                  <td>{{ $employee->nama }}</td>
-                  <td>{{ $employee->jabatan }}</td>
-                  <td>
-                    <span class="status {{ $employee->status }}">
-                      {{ ucfirst($employee->status) }}
-                    </span>
-                  </td>
-                  <td>
-                    <a href="{{ route('employees.edit', $employee) }}" class="btn btn-small" style="background:#3b82f6;">Edit</a>
-                    <form method="POST" action="{{ route('employees.destroy', $employee) }}" style="display:inline;">
-                      @csrf @method('DELETE')
-                      <button type="submit" class="btn btn-small btn-danger" onclick="return confirm('Yakin?')">Hapus</button>
-                    </form>
-                  </td>
-                </tr>
-              @endforeach
-            </tbody>
-          </table>
-        @else
-          <div class="empty">Belum ada karyawan. Tambahkan karyawan baru atau import dari file CSV.</div>
+      <form method="GET" action="" style="margin-bottom:20px;display:flex;gap:12px;align-items:center;">
+        <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari Nama/NIK" style="padding:8px 12px;border:1px solid #cbd5e1;border-radius:6px;font-size:14px;">
+        <select name="dept" style="padding:8px 12px;border:1px solid #cbd5e1;border-radius:6px;font-size:14px;">
+          <option value="">Semua Departemen</option>
+          @foreach($departments as $d)
+            <option value="{{ $d->name }}" {{ request('dept') == $d->name ? 'selected' : '' }}>{{ $d->name }}</option>
+          @endforeach
+        </select>
+        <button type="submit" class="btn" style="background:#003e6f;">Cari</button>
+        @if(request('q') || request('dept'))
+          <a href="{{ route('employees.index') }}" class="btn" style="background:#64748b;">Reset</a>
         @endif
+      </form>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>NIK</th>
+              <th>NAMA</th>
+              <th>GOL</th>
+              <th>DEPT</th>
+              <th>JABATAN</th>
+              <th>SEKSI</th>
+              <th>GOL DARAH</th>
+              <th>STATUS TETAP/KONTRAK</th>
+              <th>STATUS AKTIF/TIDAK AKTIF</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse($employees as $employee)
+            <tr>
+              <td>{{ $employee->nik }}</td>
+              <td>{{ $employee->nama }}</td>
+              <td>{{ $employee->gol }}</td>
+              <td>{{ $employee->dept }}</td>
+              <td>{{ $employee->jabatan }}</td>
+              <td>{{ $employee->seksi }}</td>
+              <td>{{ $employee->gol_darah }}</td>
+              <td>{{ ucfirst($employee->status_karyawan) }}</td>
+              <td>{{ strtoupper($employee->status_aktif) }}</td>
+              <td>
+                <a href="{{ route('families.index', $employee) }}" class="btn btn-small" style="background:#10b981;">Data Keluarga</a>
+                <a href="{{ route('employees.show', $employee) }}" class="btn btn-small" style="background:#64748b;">Detail</a>
+                <a href="{{ route('employees.edit', $employee) }}" class="btn btn-small" style="background:#3b82f6;">Edit</a>
+                <form method="POST" action="{{ route('employees.destroy', $employee) }}" style="display:inline;">
+                  @csrf @method('DELETE')
+                  <button type="submit" class="btn btn-small btn-danger" onclick="return confirm('Yakin?')">Hapus</button>
+                </form>
+              </td>
+            </tr>
+            @empty
+            <tr>
+              <td colspan="10" class="empty">Belum ada karyawan. Tambahkan karyawan baru atau import dari file CSV.</td>
+            </tr>
+            @endforelse
+          </tbody>
+        </table>
       </div>
-
       <div style="text-align:center; color:#64748b; font-size:12px; margin-top:20px;">
         copyright @2026 Shindengen HR Internal Team
       </div>

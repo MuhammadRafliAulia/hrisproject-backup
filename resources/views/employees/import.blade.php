@@ -32,22 +32,7 @@
   </style>
 </head>
 <body>
-  <div class="sidebar">
-    <h2>Menu</h2>
-    <ul class="sidebar-menu">
-      <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
-      <li><a href="{{ route('banks.index') }}">📋 Psikotest Online</a></li>
-      <li><a href="{{ route('employees.index') }}">👥 Database Karyawan</a></li>
-    </ul>
-    
-    <div class="user-section">
-      <div class="user-name">👤 {{ auth()->user()->name }}</div>
-      <form method="POST" action="{{ route('logout') }}" style="margin:0;">
-        @csrf
-        <button type="submit" class="btn btn-logout">Logout</button>
-      </form>
-    </div>
-  </div>
+  @include('layouts.sidebar')
 
   <div class="main">
     <div class="topbar">

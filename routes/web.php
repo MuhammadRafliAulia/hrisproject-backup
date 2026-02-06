@@ -1,10 +1,13 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+// Tambah route keluarga
+require __DIR__.'/families.php';
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BankController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
@@ -30,8 +33,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/banks/{bank}/export-excel', [BankController::class, 'exportExcel'])->name('banks.export-excel');
 });
 
-// Authenticated routes for managing employees
+// Authenticated routes for managing employees and departments
 Route::middleware('auth')->group(function () {
+    Route::resource('departments', DepartmentController::class);
     Route::resource('employees', EmployeeController::class);
     Route::get('/employees-import', [EmployeeController::class, 'showImport'])->name('employees.import-form');
     Route::post('/employees-import', [EmployeeController::class, 'import'])->name('employees.import');
@@ -43,7 +47,7 @@ Route::middleware('auth')->group(function () {
 Route::get('/test/{token}', [TestController::class, 'show'])->name('test.show');
 Route::post('/test/{token}/form', [TestController::class, 'submitForm'])->name('test.submit-form');
 Route::post('/test/{token}/submit', [TestController::class, 'submit'])->name('test.submit');
-Route::get('/test/{token}/result', [TestController::class, 'result'])->name('test.result');
+Route::get('/test/{token}/thankyou', [TestController::class, 'thankyou'])->name('test.thankyou');
 
 // Serve storage files in development if storage:link is not available
 Route::get('/storage/{path}', function ($path) {

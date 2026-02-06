@@ -110,7 +110,9 @@ class BankController extends Controller
     {
         $this->authorize('update', $bank);
         $questions = $bank->questions;
-        return view('banks.edit', compact('bank', 'questions'));
+        // Ambil semua link peserta yang sudah digenerate
+        $links = $bank->responses()->orderBy('created_at', 'desc')->get();
+        return view('banks.edit', compact('bank', 'questions', 'links'));
     }
 
     public function update(Request $request, Bank $bank)

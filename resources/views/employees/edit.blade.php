@@ -29,22 +29,7 @@
   </style>
 </head>
 <body>
-  <div class="sidebar">
-    <h2>Menu</h2>
-    <ul class="sidebar-menu">
-      <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
-      <li><a href="{{ route('banks.index') }}">📋 Psikotest Online</a></li>
-      <li><a href="{{ route('employees.index') }}">👥 Database Karyawan</a></li>
-    </ul>
-    
-    <div class="user-section">
-      <div class="user-name">👤 {{ auth()->user()->name }}</div>
-      <form method="POST" action="{{ route('logout') }}" style="margin:0;">
-        @csrf
-        <button type="submit" class="btn btn-logout">Logout</button>
-      </form>
-    </div>
-  </div>
+  @include('layouts.sidebar')
 
   <div class="main">
     <div class="topbar">
@@ -57,21 +42,32 @@
         <form method="POST" action="{{ route('employees.update', $employee) }}">
           @csrf @method('PUT')
 
-          <label for="nama">Nama</label>
-          <input id="nama" type="text" name="nama" value="{{ $employee->nama }}" required>
-          @error('nama')<div class="error">{{ $message }}</div>@enderror
-
-          <label for="jabatan">Jabatan</label>
-          <input id="jabatan" type="text" name="jabatan" value="{{ $employee->jabatan }}" required>
-          @error('jabatan')<div class="error">{{ $message }}</div>@enderror
-
-          <label for="status">Status</label>
-          <select id="status" name="status" required>
-            <option value="kontrak" {{ $employee->status === 'kontrak' ? 'selected' : '' }}>Kontrak</option>
-            <option value="tetap" {{ $employee->status === 'tetap' ? 'selected' : '' }}>Tetap</option>
-          </select>
-          @error('status')<div class="error">{{ $message }}</div>@enderror
-
+          @php
+          $fields = [
+            ['NIK', 'nik'], ['NAMA', 'nama'], ['GOL', 'gol'], ['DEPT', 'dept'], ['JABATAN', 'jabatan'], ['SEKSI', 'seksi'],
+            ['TEMPAT LAHIR', 'tempat_lahir'], ['TGL. LAHIR', 'tgl_lahir', 'date'], ['GOL. DARAH', 'gol_darah'], ['ALAMAT DOMISILI', 'alamat_domisili'],
+            ['STATUS TEMPAT TINGGAL', 'status_tempat_tinggal'], ['NO TELPON', 'no_telpon'], ['NO. WA', 'no_wa'], ['PIHAK YANG DAPAT DIHUBUNGI SAAT DARURAT', 'kontak_darurat'],
+            ['TGL. MASUK', 'tgl_masuk', 'date'], ['BULAN MASUK', 'bulan_masuk'], ['TAHUN MASUK', 'tahun_masuk'], ['STATUS', 'status_karyawan'],
+            ['STATUS PPH', 'status_pph'], ['END PKWT 1', 'end_pkwt_1', 'date'], ['END PKWT 2', 'end_pkwt_2', 'date'], ['TGL. PENGANGKATAN', 'tgl_pengangkatan', 'date'],
+            ['TGL SEKARANG', 'tgl_sekarang', 'date'], ['MASA KERJA DIA', 'masa_kerja'], ['USIA', 'usia'], ['NPWP', 'npwp'], ['JAMSOSTEK', 'jamsostek'],
+            ['NO KPJ BPJSTK', 'no_kpj_bpjstk'], ['NO.KK', 'no_kk'], ['KTP', 'ktp'], ['ALAMAT EMAIL', 'alamat_email', 'email'],
+            ['STATUS PERKAWINAN', 'status_perkawinan'], ['STATUS PERKAWINAN (EXCEL)', 'status_perkawinan_excel'], ['PENDIDIKAN', 'pendidikan'],
+            ['ASAL SEKOLAH', 'asal_sekolah'], ['A.R.', 'ar'], ['END', 'end', 'date'], ['BULAN END', 'bulan_end'], ['STATUS (AKTIF/TIDAK AKTIF)', 'status_aktif'],
+            ['ALAMAT NPWP', 'alamat_npwp'], ['ALAMAT ASAL', 'alamat_asal'], ['AGAMA', 'agama'], ['ASAL KOTA', 'asal_kota'],
+            ['ALAMAT DOMISILI KECAMATAN', 'alamat_domisili_kecamatan'], ['AREA ASAL KECAMATAN', 'area_asal_kecamatan'], ['AREA ASAL', 'area_asal'],
+          ];
+          @endphp
+          @foreach($fields as $f)
+            @if($f[1] === 'dept')
+              <label for="dept">{{ $f[0] }}</label>
+              <x-department-select :selected="old('dept', $employee->dept)" />
+              @error('dept')<div class="error">{{ $message }}</div>@enderror
+            @else
+              <label for="{{ $f[1] }}">{{ $f[0] }}</label>
+              <input id="{{ $f[1] }}" type="{{ $f[2] ?? 'text' }}" name="{{ $f[1] }}" value="{{ old($f[1], $employee->{$f[1]}) }}">
+              @error($f[1])<div class="error">{{ $message }}</div>@enderror
+            @endif
+          @endforeach
           <div>
             <button type="submit" class="btn">Simpan Perubahan</button>
             <a href="{{ route('employees.index') }}" class="btn btn-cancel" style="text-decoration:none;">Batal</a>

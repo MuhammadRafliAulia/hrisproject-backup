@@ -27,11 +27,12 @@
     @endphp
 
     <div class="badge">{{ $response->score }}/{{ $total }}</div>
-    <h1>Tes Selesai</h1>
+    <h1>Terima Kasih Sudah Mengerjakan Tes!</h1>
     <p style="color:#334155; margin:0;">{{ $response->bank->title }}</p>
 
     <div class="percentage good" style="margin-top:20px;">
-      ✓ Terima kasih telah mengikuti tes ini.
+      ✓ Jawaban Anda sudah terekam.<br>
+      Berikut adalah hasil Anda:
     </div>
 
     <div class="details">
@@ -42,7 +43,10 @@
         <span class="detail-label">Email:</span> {{ $response->participant_email }}
       </div>
       <div class="detail-row">
-        <span class="detail-label">Waktu:</span> {{ $response->completed_at->format('d/m/Y H:i:s') }}
+        <span class="detail-label">Waktu Selesai:</span> {{ $response->completed_at->format('d/m/Y H:i:s') }}
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Nilai:</span> <strong>{{ $response->score }}/{{ $total }}</strong> ({{ $percentage }}%)
       </div>
     </div>
 
