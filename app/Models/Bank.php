@@ -10,7 +10,7 @@ class Bank extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'title', 'description', 'slug', 'is_active'];
+    protected $fillable = ['user_id', 'title', 'description', 'slug', 'is_active', 'duration_minutes'];
 
     protected static function boot()
     {
@@ -30,6 +30,11 @@ class Bank extends Model
     public function questions()
     {
         return $this->hasMany(Question::class)->orderBy('order');
+    }
+
+    public function subTests()
+    {
+        return $this->hasMany(SubTest::class)->orderBy('order');
     }
 
     public function responses()

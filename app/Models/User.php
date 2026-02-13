@@ -10,29 +10,53 @@ use Illuminate\Notifications\Notifiable;
 /**
  * App\Models\User
  *
+ * @property string $role
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Bank[] $banks
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Employee[] $employees
+ * @method bool isSuperAdmin()
+ * @method bool isAdminProd()
+ * @method bool isRecruitmentTeam()
  */
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'name',
         'email',
         'password',
+        'role',
     ];
+
+    public function isSuperAdmin()
+    {
+        return $this->role === 'superadmin';
+    }
+
+    public function isAdminProd()
+    {
+        return $this->role === 'admin_prod';
+    }
+
+    public function isRecruitmentTeam()
+    {
+        return $this->role === 'recruitmentteam';
+    }
+
+    public function isTopLevelManagement()
+    {
+        return $this->role === 'top_level_management';
+    }
 
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -40,17 +64,13 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
 
     public function banks()
     {

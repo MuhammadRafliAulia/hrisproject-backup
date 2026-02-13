@@ -9,6 +9,10 @@ use App\Http\Controllers\TestController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\WarningLetterController;
+use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\TaskController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -18,24 +22,52 @@ Route::get('/login', [LoginController::class, 'show'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:5,1')->name('login.post');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'role:superadmin,top_level_management'])->name('dashboard');
+Route::get('/recruitment-dashboard', [DashboardController::class, 'recruitmentDashboard'])->middleware(['auth', 'role:recruitmentteam'])->name('recruitment.dashboard');
+
+// Task Management (top_level_management & recruitmentteam)
+Route::middleware(['auth', 'role:superadmin,top_level_management,recruitmentteam'])->group(function () {
+    Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
+    Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
+    Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
+    Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
+    Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
+    Route::post('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.update-status');
+    Route::post('/tasks/reorder', [TaskController::class, 'reorder'])->name('tasks.reorder');
+    Route::post('/tasks/{task}/checklists', [TaskController::class, 'addChecklist'])->name('tasks.add-checklist');
+    Route::post('/checklists/{checklist}/toggle', [TaskController::class, 'toggleChecklist'])->name('checklists.toggle');
+    Route::delete('/checklists/{checklist}', [TaskController::class, 'deleteChecklist'])->name('checklists.delete');
+    Route::post('/tasks/{task}/comments', [TaskController::class, 'addComment'])->name('tasks.add-comment');
+    Route::delete('/comments/{comment}', [TaskController::class, 'deleteComment'])->name('comments.delete');
+    Route::post('/tasks/{task}/attachments', [TaskController::class, 'addAttachment'])->name('tasks.add-attachment');
+    Route::delete('/attachments/{attachment}', [TaskController::class, 'deleteAttachment'])->name('attachments.delete');
+});
 
 // Authenticated routes for managing question banks
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'role:superadmin,recruitmentteam'])->group(function () {
     Route::resource('banks', BankController::class);
     Route::get('/banks/{bank}/results', [BankController::class, 'results'])->name('banks.results');
-    Route::post('/banks/{bank}/generate-link', [BankController::class, 'generateLink'])->name('banks.generate-link');
+
     Route::post('/banks/{bank}/toggle', [BankController::class, 'toggleBank'])->name('banks.toggle');
+
+    // Sub-test routes
+    Route::get('/sub-tests/{subTest}/edit', [BankController::class, 'editSubTest'])->name('sub-tests.edit');
+    Route::put('/sub-tests/{subTest}', [BankController::class, 'updateSubTest'])->name('sub-tests.update');
+    Route::delete('/sub-tests/{subTest}', [BankController::class, 'deleteSubTest'])->name('sub-tests.delete');
+
+    // Question routes
     Route::get('/questions/{question}/edit', [BankController::class, 'editQuestion'])->name('questions.edit');
     Route::put('/questions/{question}', [BankController::class, 'updateQuestion'])->name('questions.update');
     Route::delete('/questions/{question}', [BankController::class, 'deleteQuestion'])->name('questions.delete');
-    Route::get('/banks/{bank}/export', [BankController::class, 'exportResults'])->name('banks.export');
+    Route::get('/banks/{bank}/participant/{response}/pdf', [BankController::class, 'exportParticipantPdf'])->name('banks.export-participant-pdf');
     Route::get('/banks/{bank}/export-excel', [BankController::class, 'exportExcel'])->name('banks.export-excel');
+    Route::get('/cheat-log', [BankController::class, 'cheatLog'])->name('banks.cheat-log');
 });
 
 // Authenticated routes for managing employees and departments
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::resource('departments', DepartmentController::class);
+    Route::resource('users', UserController::class);
     Route::resource('employees', EmployeeController::class);
     Route::get('/employees-import', [EmployeeController::class, 'showImport'])->name('employees.import-form');
     Route::post('/employees-import', [EmployeeController::class, 'import'])->name('employees.import');
@@ -43,11 +75,31 @@ Route::middleware('auth')->group(function () {
     Route::get('/employees-export', [EmployeeController::class, 'exportExcel'])->name('employees.export');
 });
 
+// Authenticated routes for managing warning letters (Surat Peringatan)
+Route::middleware(['auth', 'role:superadmin,admin_prod'])->group(function () {
+    Route::resource('warning-letters', WarningLetterController::class)->except(['show']);
+    Route::get('/warning-letters/{warning_letter}/pdf', [WarningLetterController::class, 'showPdf'])->name('warning-letters.show-pdf');
+    Route::get('/warning-letters/{warning_letter}/download-pdf', [WarningLetterController::class, 'downloadPdf'])->name('warning-letters.download-pdf');
+    Route::get('/warning-letters-export', [WarningLetterController::class, 'exportExcel'])->name('warning-letters.export');
+    Route::get('/warning-letters-import', [WarningLetterController::class, 'showImport'])->name('warning-letters.import-form');
+    Route::post('/warning-letters-import', [WarningLetterController::class, 'import'])->name('warning-letters.import');
+    Route::get('/warning-letters-template', [WarningLetterController::class, 'downloadTemplate'])->name('warning-letters.template');
+    Route::get('/warning-letters/{warning_letter}/sign', [WarningLetterController::class, 'showSign'])->name('warning-letters.sign-form');
+    Route::post('/warning-letters/{warning_letter}/sign', [WarningLetterController::class, 'sign'])->name('warning-letters.sign');
+});
+
 // Public test routes
-Route::get('/test/{token}', [TestController::class, 'show'])->name('test.show');
-Route::post('/test/{token}/form', [TestController::class, 'submitForm'])->name('test.submit-form');
-Route::post('/test/{token}/submit', [TestController::class, 'submit'])->name('test.submit');
-Route::get('/test/{token}/thankyou', [TestController::class, 'thankyou'])->name('test.thankyou');
+Route::get('/test/take/{token}', [TestController::class, 'show'])->name('test.show');
+Route::post('/test/take/{token}/submit', [TestController::class, 'submit'])->name('test.submit');
+Route::get('/test/take/{token}/thankyou', [TestController::class, 'thankyou'])->name('test.thankyou');
+Route::get('/test/{slug}', [TestController::class, 'register'])->name('test.register');
+Route::post('/test/{slug}/start', [TestController::class, 'start'])->name('test.start');
+
+// Activity Logs (superadmin only)
+Route::middleware(['auth', 'role:superadmin'])->group(function () {
+    Route::get('/activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
+    Route::delete('/activity-logs', [ActivityLogController::class, 'clear'])->name('activity-logs.clear');
+});
 
 // Serve storage files in development if storage:link is not available
 Route::get('/storage/{path}', function ($path) {

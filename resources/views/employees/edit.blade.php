@@ -6,7 +6,7 @@
   <title>Edit Karyawan</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:#f7fafc; margin:0; display:flex; height:100vh; }
-    .sidebar { width:280px; background:#fff; border-right:1px solid #e2e8f0; padding:20px; box-sizing:border-box; }
+    .sidebar { width:280px; min-width:280px; flex-shrink:0; background:#fff; border-right:1px solid #e2e8f0; padding:20px; box-sizing:border-box; }
     .sidebar h2 { font-size:16px; color:#0f172a; margin:0 0 16px 0; font-weight:600; }
     .sidebar-menu { list-style:none; margin:0; padding:0; }
     .sidebar-menu li { margin-bottom:8px; }
@@ -23,10 +23,15 @@
     .btn { background:#003e6f; color:#fff; border:none; padding:10px 12px; border-radius:6px; font-size:14px; cursor:pointer; margin-top:20px; }
     .btn-cancel { background:#64748b; margin-left:8px; }
     .error { color:#dc2626; font-size:12px; margin-top:4px; }
-    .user-section { border-top:1px solid #e2e8f0; padding-top:16px; margin-top:16px; }
-    .user-name { font-size:13px; color:#475569; margin-bottom:12px; }
-    .btn-logout { width:100%; text-align:center; background:#003e6f; }
+    .required-mark { color:#dc2626; font-weight:bold; }
+    input.is-invalid, select.is-invalid { border-color:#dc2626; background:#fef2f2; }
+    .error-summary { background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; padding:16px; margin-bottom:20px; }
+    .error-summary h3 { color:#dc2626; font-size:14px; margin:0 0 8px 0; }
+    .error-summary ul { margin:0; padding-left:20px; }
+    .error-summary li { color:#dc2626; font-size:13px; margin-bottom:4px; }
+
   </style>
+  <link rel="stylesheet" href="{{ asset('css/responsive.css') }}">
 </head>
 <body>
   @include('layouts.sidebar')
@@ -39,12 +44,24 @@
     <div class="content">
       <div class="card">
         <h2>{{ $employee->nama }}</h2>
+
+        @if($errors->any())
+        <div class="error-summary">
+          <h3>⚠ Terdapat {{ $errors->count() }} kolom yang harus diperbaiki:</h3>
+          <ul>
+            @foreach($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
+        </div>
+        @endif
+
         <form method="POST" action="{{ route('employees.update', $employee) }}">
           @csrf @method('PUT')
 
           @php
           $fields = [
-            ['NIK', 'nik'], ['NAMA', 'nama'], ['GOL', 'gol'], ['DEPT', 'dept'], ['JABATAN', 'jabatan'], ['SEKSI', 'seksi'],
+            ['NIK', 'nik'], ['NAMA *', 'nama'], ['GOL', 'gol'], ['DEPT', 'dept'], ['JABATAN', 'jabatan'], ['SEKSI', 'seksi'],
             ['TEMPAT LAHIR', 'tempat_lahir'], ['TGL. LAHIR', 'tgl_lahir', 'date'], ['GOL. DARAH', 'gol_darah'], ['ALAMAT DOMISILI', 'alamat_domisili'],
             ['STATUS TEMPAT TINGGAL', 'status_tempat_tinggal'], ['NO TELPON', 'no_telpon'], ['NO. WA', 'no_wa'], ['PIHAK YANG DAPAT DIHUBUNGI SAAT DARURAT', 'kontak_darurat'],
             ['TGL. MASUK', 'tgl_masuk', 'date'], ['BULAN MASUK', 'bulan_masuk'], ['TAHUN MASUK', 'tahun_masuk'], ['STATUS', 'status_karyawan'],
@@ -64,7 +81,7 @@
               @error('dept')<div class="error">{{ $message }}</div>@enderror
             @else
               <label for="{{ $f[1] }}">{{ $f[0] }}</label>
-              <input id="{{ $f[1] }}" type="{{ $f[2] ?? 'text' }}" name="{{ $f[1] }}" value="{{ old($f[1], $employee->{$f[1]}) }}">
+              <input id="{{ $f[1] }}" type="{{ $f[2] ?? 'text' }}" name="{{ $f[1] }}" value="{{ old($f[1], $employee->{$f[1]}) }}" class="@error($f[1]) is-invalid @enderror" {{ $f[1] === 'nama' ? 'required' : '' }}>
               @error($f[1])<div class="error">{{ $message }}</div>@enderror
             @endif
           @endforeach

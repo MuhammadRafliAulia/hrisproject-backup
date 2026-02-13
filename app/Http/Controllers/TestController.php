@@ -4,90 +4,157 @@ namespace App\Http\Controllers;
 
 use App\Models\ParticipantResponse;
 use App\Models\Bank;
+use App\Models\SubTest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class TestController extends Controller
 {
-    public function show($token)
+    /**
+     * Show registration / biodata form for a bank (shared link).
+     */
+    public function register($slug)
     {
-        $response = ParticipantResponse::where('token', $token)->firstOrFail();
-        $bank = $response->bank;
-        
-        // Check if bank link is still active
+        $bank = Bank::where('slug', $slug)->firstOrFail();
+
         if (!$bank->is_active) {
-            abort(403, 'Link untuk tes ini sudah ditutup oleh admin. Anda tidak bisa mengakses tes lagi.');
+            abort(403, 'Tes ini sudah ditutup oleh admin.');
         }
 
-        // Check if already completed
-        if ($response->completed) {
-            return redirect()->route('test.result', $token)->with('info', 'Tes sudah diselesaikan.');
-        }
-
-        // If not yet started, show participant data form
-        if (!$response->started_at) {
-            $bank = $response->bank;
-            return view('test.form', compact('response', 'bank', 'token'));
-        }
-
-        // Show questions if form already filled
-        $bank = $response->bank;
-        $questions = $bank->questions;
-
-        return view('test.show', compact('response', 'bank', 'questions'));
+        $departments = \App\Models\Department::orderBy('name')->get();
+        return view('test.form', compact('bank', 'slug', 'departments'));
     }
 
-    public function submitForm(Request $request, $token)
+    /**
+     * Submit biodata, create participant response, redirect to test.
+     */
+    public function start(Request $request, $slug)
     {
-        $response = ParticipantResponse::where('token', $token)->firstOrFail();
+        $bank = Bank::where('slug', $slug)->firstOrFail();
 
-        $validated = $request->validate([
-            'participant_name' => 'required|string|max:255',
-            'participant_email' => 'required|email|max:255',
-            'position' => 'required|string|max:255',
-        ]);
-
-        $bank = $response->bank;
-
-        // Check for duplicate: same email already completed this bank's test
-        $isDuplicate = ParticipantResponse::where('bank_id', $bank->id)
-            ->where('participant_email', $validated['participant_email'])
-            ->where('completed', true)
-            ->exists();
-
-        if ($isDuplicate) {
-            return back()
-                ->withInput()
-                ->with('duplicate_error', true)
-                ->withErrors(['participant_email' => 'anda sudah tidak bisa mengerjakan test ini lagi']);
+        if (!$bank->is_active) {
+            abort(403, 'Tes ini sudah ditutup oleh admin.');
         }
 
-        // Update response with participant data and mark as started
-        $response->update([
+        $validated = $request->validate([
+            'nik' => 'required|string|max:50',
+            'participant_name' => 'required|string|max:255',
+            'department' => 'required|string|max:255',
+            'position' => 'required|string|max:255',
+            'participant_email' => 'required|email|max:255',
+            'phone' => 'required|string|max:20',
+        ]);
+
+        // Check if same NIK already started but not completed (resume)
+        $existing = ParticipantResponse::where('bank_id', $bank->id)
+            ->where('nik', $validated['nik'])
+            ->where('completed', false)
+            ->first();
+
+        if ($existing) {
+            // Resume existing session
+            return redirect()->route('test.show', $existing->token);
+        }
+
+        // Create new participant response
+        $token = Str::random(32);
+        ParticipantResponse::create([
+            'bank_id' => $bank->id,
+            'nik' => $validated['nik'],
             'participant_name' => $validated['participant_name'],
             'participant_email' => $validated['participant_email'],
+            'phone' => $validated['phone'],
+            'department' => $validated['department'],
             'position' => $validated['position'],
+            'token' => $token,
             'started_at' => now(),
         ]);
 
         return redirect()->route('test.show', $token);
     }
 
+    /**
+     * Show test questions page.
+     */
+    public function show($token)
+    {
+        $response = ParticipantResponse::where('token', $token)->firstOrFail();
+        $bank = $response->bank;
+
+        if (!$bank->is_active) {
+            abort(403, 'Tes ini sudah ditutup oleh admin.');
+        }
+
+        // Already completed → thank you page
+        if ($response->completed) {
+            return redirect()->route('test.thankyou', $token);
+        }
+
+        // Check if time has expired (auto-submit)
+        if ($bank->duration_minutes) {
+            $deadline = $response->started_at->copy()->addMinutes($bank->duration_minutes);
+            if (now()->greaterThanOrEqualTo($deadline)) {
+                if (!$response->completed) {
+                    $this->autoSubmit($response);
+                }
+                return redirect()->route('test.thankyou', $token);
+            }
+            $remainingSeconds = now()->diffInSeconds($deadline, false);
+        } else {
+            $remainingSeconds = null;
+        }
+
+        $questions = $bank->questions;
+
+        // Load sub-tests with their questions and example questions
+        $subTests = $bank->subTests()->with(['questions', 'exampleQuestions'])->get();
+        $hasSubTests = $subTests->count() > 0;
+
+        return view('test.show', compact('response', 'bank', 'questions', 'remainingSeconds', 'subTests', 'hasSubTests'));
+    }
+
+    /**
+     * Submit test answers - score and save.
+     */
     public function submit(Request $request, $token)
     {
         $response = ParticipantResponse::where('token', $token)->firstOrFail();
-        $answers = $request->validate([
-            'answers' => 'required|array',
-            'participant_name' => 'required|string|max:255',
-            'participant_email' => 'required|email|max:255',
-        ]);
-        $questions = $response->bank->questions;
+
+        // Prevent resubmission
+        if ($response->completed) {
+            return redirect()->route('test.thankyou', $token);
+        }
+
+        // Accept answers - may be empty on auto-submit
+        $answers = $request->input('answers', []);
+
+        // Get only real questions (not examples) for scoring
+        $bank = $response->bank;
+        $subTests = $bank->subTests;
+        if ($subTests->count() > 0) {
+            // Sub-test mode: only score non-example questions from sub-tests
+            $questions = collect();
+            foreach ($subTests as $st) {
+                $questions = $questions->merge($st->questions); // questions() already filters is_example=false
+            }
+        } else {
+            $questions = $bank->questions;
+        }
+
         $score = 0;
-        $responses = [];
+        $responsesData = [];
+
         foreach ($questions as $question) {
-            $userAnswer = $answers['answers'][$question->id] ?? null;
-            $responses[$question->id] = $userAnswer;
+            $userAnswer = $answers[$question->id] ?? null;
+            $responsesData[$question->id] = $userAnswer;
+
+            // Skip scoring for narrative and survey questions (no correct answer)
+            if ($question->type === 'narrative' || $question->type === 'survey') {
+                continue;
+            }
+
             if ($question->type === 'text') {
-                if (strtolower(trim($userAnswer)) === strtolower(trim($question->correct_answer_text))) {
+                if ($userAnswer && strtolower(trim($userAnswer)) === strtolower(trim($question->correct_answer_text))) {
                     $score++;
                 }
             } else {
@@ -96,40 +163,72 @@ class TestController extends Controller
                 }
             }
         }
-        $totalQuestions = $questions->count();
-        $percentage = $totalQuestions > 0 ? round(($score / $totalQuestions) * 100, 2) : 0;
+
+        // Collect anti-cheat violation data
+        $violationCount = (int) $request->input('violation_count', 0);
+        $violationLog = $request->input('violation_log') ? json_decode($request->input('violation_log'), true) : [];
+        $antiCheatNote = $request->input('anti_cheat_note');
 
         try {
             $response->update([
-                'participant_name' => $answers['participant_name'],
-                'participant_email' => $answers['participant_email'],
-                'responses' => $responses,
+                'responses' => $responsesData,
                 'score' => $score,
                 'completed' => true,
                 'completed_at' => now(),
+                'violation_count' => $violationCount,
+                'violation_log' => $violationLog,
+                'anti_cheat_note' => $antiCheatNote,
             ]);
         } catch (\Exception $e) {
             return back()->withInput()->with('error', 'Gagal menyimpan hasil tes: ' . $e->getMessage());
         }
 
-        // Pastikan hasil masuk ke bank soal (relasi sudah otomatis)
-        // Redirect ke halaman terima kasih
-        return redirect()->route('test.thankyou', $token)->with('success', 'Tes berhasil diselesaikan!');
-    }
-
-    public function result($token)
-    {
-        // Redirect ke halaman terima kasih saja
         return redirect()->route('test.thankyou', $token);
     }
 
-    // Halaman terima kasih sederhana
+    /**
+     * Auto-submit when time expires (no answers provided by user).
+     */
+    private function autoSubmit(ParticipantResponse $response)
+    {
+        $bank = $response->bank;
+        $subTests = $bank->subTests;
+        if ($subTests->count() > 0) {
+            $questions = collect();
+            foreach ($subTests as $st) {
+                $questions = $questions->merge($st->questions);
+            }
+        } else {
+            $questions = $bank->questions;
+        }
+
+        $responsesData = [];
+        $score = 0;
+
+        // Fill empty answers
+        foreach ($questions as $question) {
+            $responsesData[$question->id] = null;
+        }
+
+        $response->update([
+            'responses' => $responsesData,
+            'score' => $score,
+            'completed' => true,
+            'completed_at' => now(),
+        ]);
+    }
+
+    /**
+     * Thank you page after test completion.
+     */
     public function thankyou($token)
     {
         $response = ParticipantResponse::where('token', $token)->firstOrFail();
+
         if (!$response->completed) {
             return redirect()->route('test.show', $token);
         }
+
         return view('test.thankyou');
     }
 }

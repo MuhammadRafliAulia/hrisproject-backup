@@ -17,6 +17,7 @@
         .btn { background:#003e6f; color:#fff; border:none; padding:10px 12px; border-radius:6px; font-size:14px; cursor:pointer; text-decoration:none; margin-top:18px; display:inline-block; }
         .empty { text-align:center; color:#64748b; padding:40px; }
     </style>
+    <link rel="stylesheet" href="{{ asset('css/responsive.css') }}">
 </head>
 <body>
     @include('layouts.sidebar')
@@ -26,6 +27,7 @@
         </div>
         <div class="content">
             <div class="card">
+                <div style="overflow-x:auto;">
                 <table>
                     <thead>
                         <tr>
@@ -50,6 +52,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
                 <a href="{{ route('employees.index') }}" class="btn">Kembali</a>
             </div>
         </div>

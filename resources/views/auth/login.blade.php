@@ -13,28 +13,34 @@
     .btn { margin-top:14px; width:100%; background:#003e6f; color:#fff; border:none; padding:10px 12px; border-radius:6px; font-size:15px; cursor:pointer; }
     .btn:hover { background:#002a4f; }
     .muted { font-size:12px; color:#94a3b8; text-align:center; margin-top:12px; }
-    .copyright { font-size:12px; color:#64748b; text-align:center; margin-top:18px; }
+    .copyright { font-size:9px; color:#64748b; text-align:center; margin-top:-35px; }
+    .logo-wrap { text-align:center; margin-top:-15px; }
+    .logo-wrap img { height:100px; opacity:1; }
     .error { color:#dc2626; font-size:13px; margin-top:8px; }
     form > div { margin-bottom:12px; }
   </style>
+  <link rel="stylesheet" href="{{ asset('css/responsive.css') }}">
 </head>
 <body>
   <div class="card">
     <h1>Masuk</h1>
-    <form method="POST" action="{{ route('login.post') }}">
+    <form method="POST" action="{{ route('login.post') }}" autocomplete="off">
       @csrf
       <div>
         <label for="email">Email / Username</label>
-        <input id="email" type="text" name="email" value="{{ old('email') }}" placeholder="Masukkan email atau username" required>
+        <input id="email" type="text" name="email" value="{{ old('email') }}" placeholder="Masukkan email atau username" required autocomplete="off">
         @error('email')<div class="error">{{ $message }}</div>@enderror
       </div>
       <div>
         <label for="password">Password</label>
-        <input id="password" type="password" name="password" placeholder="Masukkan password" required>
+        <input id="password" type="password" name="password" placeholder="Masukkan password" required autocomplete="new-password">
         @error('password')<div class="error">{{ $message }}</div>@enderror
       </div>
       <button type="submit" class="btn">Masuk</button>
     </form>
+    <div class="logo-wrap">
+      <img src="{{ asset('logo.png') }}" alt="Logo">
+    </div>
     <div class="copyright">copyright @2026 Shindengen HR Internal Team</div>
   </div>
 </body>

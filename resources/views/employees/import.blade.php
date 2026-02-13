@@ -6,7 +6,7 @@
   <title>Import Karyawan</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:#f7fafc; margin:0; display:flex; height:100vh; }
-    .sidebar { width:280px; background:#fff; border-right:1px solid #e2e8f0; padding:20px; box-sizing:border-box; }
+    .sidebar { width:280px; min-width:280px; flex-shrink:0; background:#fff; border-right:1px solid #e2e8f0; padding:20px; box-sizing:border-box; }
     .sidebar h2 { font-size:16px; color:#0f172a; margin:0 0 16px 0; font-weight:600; }
     .sidebar-menu { list-style:none; margin:0; padding:0; }
     .sidebar-menu li { margin-bottom:8px; }
@@ -26,10 +26,9 @@
     .btn-cancel { background:#64748b; margin-left:8px; }
     .btn-template { background:#10b981; }
     .error { color:#dc2626; font-size:12px; margin-top:4px; }
-    .user-section { border-top:1px solid #e2e8f0; padding-top:16px; margin-top:16px; }
-    .user-name { font-size:13px; color:#475569; margin-bottom:12px; }
-    .btn-logout { width:100%; text-align:center; background:#003e6f; }
+
   </style>
+  <link rel="stylesheet" href="{{ asset('css/responsive.css') }}">
 </head>
 <body>
   @include('layouts.sidebar')
@@ -41,24 +40,24 @@
     
     <div class="content">
       <div class="card">
-        <h2>Import dari File CSV</h2>
+        <h2>Import dari File Excel</h2>
         
         <div class="info">
           <strong>Format File:</strong>
-          Pastikan file CSV memiliki kolom: nama, jabatan, status (kontrak/tetap)
+          Pastikan file Excel (.xlsx) memiliki kolom sesuai template. Setiap kolom harus terpisah, tidak digabung.
           <br>
-          <a href="{{ route('employees.template') }}" style="color:#0c4a6e; text-decoration:underline;">Unduh template CSV</a>
+          <a href="{{ route('employees.template') }}" style="color:#0c4a6e; text-decoration:underline;">📄 Download Template Excel</a>
         </div>
 
         <form method="POST" action="{{ route('employees.import') }}" enctype="multipart/form-data">
           @csrf
 
-          <label for="file">Pilih File CSV</label>
-          <input id="file" type="file" name="file" accept=".csv,.txt" required>
+          <label for="file">Pilih File Excel (.xlsx)</label>
+          <input id="file" type="file" name="file" accept=".xlsx,.xls" required>
           @error('file')<div class="error">{{ $message }}</div>@enderror
 
           <div>
-            <button type="submit" class="btn">📥 Import</button>
+            <button type="submit" class="btn">📤 Import</button>
             <a href="{{ route('employees.index') }}" class="btn btn-cancel" style="text-decoration:none;">Batal</a>
           </div>
         </form>
@@ -66,10 +65,11 @@
         <div style="margin-top:24px; padding:16px; background:#fef08a; border-radius:6px; border-left:3px solid #713f12;">
           <strong style="color:#713f12;">ℹ️ Catatan:</strong>
           <ul style="margin:8px 0 0 0; color:#713f12; font-size:13px;">
-            <li>Format file harus CSV atau TXT</li>
-            <li>Ukuran maksimal 2MB</li>
-            <li>Baris pertama adalah header (nama, jabatan, status)</li>
-            <li>Status hanya boleh "kontrak" atau "tetap"</li>
+            <li>Format file harus Excel (.xlsx atau .xls)</li>
+            <li>Ukuran maksimal 5MB</li>
+            <li>Baris pertama adalah header (sesuai template)</li>
+            <li>Setiap kolom harus terpisah, jangan digabung (merge)</li>
+            <li>Kolom NAMA wajib diisi</li>
             <li>Data yang tidak valid akan ditampilkan di pesan error</li>
           </ul>
         </div>

@@ -3,17 +3,16 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
      * Seed the application's database.
+     *
+     * @return void
      */
-    public function run(): void
+    public function run()
     {
         // Create test user if not exists
         if (!User::where('email', 'test@example.com')->exists()) {
@@ -29,6 +28,17 @@ class DatabaseSeeder extends Seeder
                 'name' => 'admin',
                 'email' => 'admin',
                 'password' => bcrypt('admin123'),
+                'role' => 'superadmin',
+            ]);
+        }
+
+        // Create admin production user if not exists
+        if (!User::where('email', 'adminprod')->exists()) {
+            User::create([
+                'name' => 'Admin Production',
+                'email' => 'adminprod',
+                'password' => bcrypt('adminprod123'),
+                'role' => 'admin_prod',
             ]);
         }
     }

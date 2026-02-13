@@ -10,6 +10,7 @@
     h1 { font-size:22px; color:#0f172a; margin:0 0 12px 0; }
     .copyright { font-size:12px; color:#64748b; margin-top:24px; }
   </style>
+  <link rel="stylesheet" href="{{ asset('css/responsive.css') }}">
 </head>
 <body>
   <div class="card">

@@ -9,10 +9,11 @@ class ParticipantResponse extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['bank_id', 'participant_name', 'participant_email', 'position', 'token', 'responses', 'score', 'completed', 'started_at', 'completed_at'];
+    protected $fillable = ['bank_id', 'nik', 'participant_name', 'participant_email', 'phone', 'position', 'department', 'token', 'responses', 'score', 'completed', 'started_at', 'completed_at', 'violation_count', 'violation_log', 'anti_cheat_note'];
 
     protected $casts = [
         'responses' => 'array',
+        'violation_log' => 'array',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
     ];

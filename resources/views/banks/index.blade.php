@@ -6,7 +6,7 @@
   <title>Psikotest Online</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:#f7fafc; margin:0; display:flex; height:100vh; }
-    .sidebar { width:280px; background:#fff; border-right:1px solid #e2e8f0; padding:20px; box-sizing:border-box; overflow-y:auto; }
+    .sidebar { width:280px; min-width:280px; flex-shrink:0; background:#fff; border-right:1px solid #e2e8f0; padding:20px; box-sizing:border-box; overflow-y:auto; }
     .sidebar h2 { font-size:16px; color:#0f172a; margin:0 0 16px 0; font-weight:600; }
     .sidebar-menu { list-style:none; margin:0; padding:0; }
     .sidebar-menu li { margin-bottom:8px; }
@@ -28,28 +28,12 @@
     th { background:#f1f5f9; color:#334155; font-weight:600; }
     .empty { text-align:center; color:#64748b; padding:40px; }
     .success { background:#d1fae5; color:#065f46; padding:12px; border-radius:6px; margin-bottom:16px; font-size:13px; }
-    .user-section { border-top:1px solid #e2e8f0; padding-top:16px; margin-top:16px; }
-    .user-name { font-size:13px; color:#475569; margin-bottom:12px; }
-    .btn-logout { width:100%; text-align:center; background:#003e6f; }
+
   </style>
+  <link rel="stylesheet" href="{{ asset('css/responsive.css') }}">
 </head>
 <body>
-  <div class="sidebar">
-    <h2>Menu</h2>
-    <ul class="sidebar-menu">
-      <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
-      <li><a href="{{ route('banks.index') }}" class="active">📋 Psikotest Online</a></li>
-      <li><a href="{{ route('employees.index') }}">👥 Database Karyawan</a></li>
-    </ul>
-    
-    <div class="user-section">
-      <div class="user-name">👤 {{ auth()->user()->name }}</div>
-      <form method="POST" action="{{ route('logout') }}" style="margin:0;">
-        @csrf
-        <button type="submit" class="btn btn-logout">Logout</button>
-      </form>
-    </div>
-  </div>
+  @include('layouts.sidebar')
 
   <div class="main">
     <div class="topbar">
@@ -68,6 +52,7 @@
         </div>
 
         @if($banks->count() > 0)
+          <div style="overflow-x:auto;">
           <table>
             <thead>
               <tr>
@@ -93,6 +78,7 @@
               @endforeach
             </tbody>
           </table>
+          </div>
         @else
           <div class="empty">Belum ada bank soal. Buat bank soal baru untuk memulai.</div>
         @endif

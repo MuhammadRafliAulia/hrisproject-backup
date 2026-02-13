@@ -1,7 +1,16 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tambah Departemen - HRIS</title>
+  <link rel="stylesheet" href="{{ asset('css/responsive.css') }}">
+</head>
+<body style="margin:0;">
 <div style="display:flex;min-height:100vh;background:#f7fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial;">
     @include('layouts.sidebar')
-    <div style="flex:1;display:flex;flex-direction:column;">
-        <div style="background:#fff;border-bottom:1px solid #e2e8f0;padding:16px 24px;display:flex;align-items:center;gap:16px;">
+    <div class="main" style="flex:1;display:flex;flex-direction:column;">
+        <div class="topbar" style="background:#fff;border-bottom:1px solid #e2e8f0;padding:16px 24px;display:flex;align-items:center;gap:16px;">
             <button onclick="window.history.back()" style="background:#e2e8f0;border:none;color:#334155;padding:6px 16px;border-radius:6px;font-size:14px;cursor:pointer;display:inline-block;">← Back</button>
             <h1 style="margin:0;font-size:20px;color:#0f172a;">Tambah Departemen</h1>
         </div>
@@ -21,3 +30,5 @@
         </div>
     </div>
 </div>
+</body>
+</html>

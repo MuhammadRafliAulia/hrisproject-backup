@@ -15,6 +15,7 @@
     .btn-cancel { background:#64748b; margin-left:8px; }
     .error { color:#dc2626; font-size:12px; margin-top:4px; }
   </style>
+  <link rel="stylesheet" href="{{ asset('css/responsive.css') }}">
 </head>
 <body>
   <div class="container">
@@ -28,6 +29,13 @@
       <label for="description">Deskripsi</label>
       <textarea id="description" name="description" rows="4">{{ old('description') }}</textarea>
       @error('description')<div class="error">{{ $message }}</div>@enderror
+
+      <label for="duration_minutes">Waktu Pengerjaan (menit)</label>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input id="duration_minutes" type="number" name="duration_minutes" value="{{ old('duration_minutes') }}" min="1" max="600" placeholder="Contoh: 60" style="width:180px;">
+        <span style="font-size:13px;color:#64748b;">menit (kosongkan jika tanpa batas waktu)</span>
+      </div>
+      @error('duration_minutes')<div class="error">{{ $message }}</div>@enderror
 
       <div>
         <button type="submit" class="btn">Buat Bank Soal</button>

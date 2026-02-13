@@ -4,18 +4,33 @@ namespace App\Http\Controllers;
 
 use App\Models\Bank;
 use App\Models\Question;
+use App\Models\SubTest;
 use App\Models\ParticipantResponse;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
 class BankController extends Controller
 {
-    use AuthorizesRequests;
 
     public function index()
     {
-        $banks = Bank::where('user_id', Auth::id())->get();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if ($user->isSuperAdmin() || $user->isRecruitmentTeam()) {
+            // Superadmin & recruitment team share the same bank soal data
+            $sharedUserIds = \App\Models\User::whereIn('role', ['superadmin', 'recruitmentteam'])->pluck('id');
+            $banks = Bank::whereIn('user_id', $sharedUserIds)->get();
+        } else {
+            $banks = Bank::where('user_id', $user->id)->get();
+        }
         return view('banks.index', compact('banks'));
     }
 
@@ -26,18 +41,21 @@ class BankController extends Controller
 
     public function store(Request $request)
     {
-        // If bank_id is provided, it's adding a question
-        if ($request->has('bank_id') && $request->filled('bank_id')) {
+        if ($request->has('bank_id') && $request->filled('bank_id') && $request->has('question')) {
             return $this->storeQuestion($request);
         }
+        if ($request->has('bank_id') && $request->filled('bank_id') && $request->has('sub_test_title')) {
+            return $this->storeSubTest($request);
+        }
 
-        // Otherwise, create a new bank
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
+            'duration_minutes' => 'nullable|integer|min:1|max:600',
         ]);
 
         $bank = Bank::create(array_merge($validated, ['user_id' => Auth::id()]));
+        ActivityLog::log('create', 'bank', 'Membuat bank soal: ' . $validated['title']);
         return redirect()->route('banks.edit', $bank)->with('success', 'Bank soal berhasil dibuat.');
     }
 
@@ -48,71 +66,110 @@ class BankController extends Controller
 
         $type = $request->input('type', 'multiple_choice');
 
-        if ($type === 'text') {
-            $validated = $request->validate([
-                'question' => 'required|string|max:1000',
+        $baseRules = [
+            'question' => 'required|string|max:1000',
+            'type' => 'required|in:text,multiple_choice,narrative,survey',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'audio' => 'nullable|mimes:mp3,wav,ogg|max:5120',
+            'option_a_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'option_b_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'option_c_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'option_d_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ];
+
+        if ($type === 'narrative') {
+            $validated = $request->validate($baseRules);
+            $validated['option_a'] = null;
+            $validated['option_b'] = null;
+            $validated['option_c'] = null;
+            $validated['option_d'] = null;
+            $validated['option_e'] = null;
+            $validated['option_count'] = null;
+            $validated['correct_answer'] = null;
+            $validated['correct_answer_text'] = null;
+        } elseif ($type === 'text') {
+            $validated = $request->validate(array_merge($baseRules, [
                 'correct_answer_text' => 'required|string|max:500',
-                'type' => 'required|in:text,multiple_choice',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'audio' => 'nullable|mimes:mp3,wav,ogg|max:5120',
-            ]);
+            ]));
+            $validated['option_a'] = null;
+            $validated['option_b'] = null;
+            $validated['option_c'] = null;
+            $validated['option_d'] = null;
+            $validated['option_e'] = null;
+            $validated['option_count'] = null;
+            $validated['correct_answer'] = null;
+        } elseif ($type === 'survey') {
+            $optCount = (int) $request->input('option_count', 2);
+            if ($optCount < 2) $optCount = 2;
+            if ($optCount > 5) $optCount = 5;
 
-            // Handle file uploads
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('questions/images', 'public');
-                $validated['image'] = $imagePath;
-            }
-            if ($request->hasFile('audio')) {
-                $audioPath = $request->file('audio')->store('questions/audio', 'public');
-                $validated['audio'] = $audioPath;
+            $surveyRules = ['option_count' => 'required|integer|min:2|max:5'];
+            $labels = ['A' => 'option_a', 'B' => 'option_b', 'C' => 'option_c', 'D' => 'option_d', 'E' => 'option_e'];
+            $i = 0;
+            foreach ($labels as $letter => $field) {
+                $i++;
+                if ($i <= $optCount) {
+                    $surveyRules[$field] = 'required|string|max:500';
+                }
             }
 
-            // Provide safe defaults for MC fields so DB insert won't fail if columns are non-nullable
-            $validated['option_a'] = $validated['option_a'] ?? null;
-            $validated['option_b'] = $validated['option_b'] ?? null;
-            $validated['option_c'] = $validated['option_c'] ?? null;
-            $validated['option_d'] = $validated['option_d'] ?? null;
-            $validated['correct_answer'] = $validated['correct_answer'] ?? null;
+            $validated = $request->validate(array_merge($baseRules, $surveyRules));
+
+            // Null out unused options
+            $i = 0;
+            foreach ($labels as $letter => $field) {
+                $i++;
+                if ($i > $optCount) {
+                    $validated[$field] = null;
+                }
+            }
+            $validated['option_count'] = $optCount;
+            $validated['correct_answer'] = null;
+            $validated['correct_answer_text'] = null;
         } else {
-            $validated = $request->validate([
-                'question' => 'required|string|max:1000',
+            $validated = $request->validate(array_merge($baseRules, [
                 'option_a' => 'required|string|max:500',
                 'option_b' => 'required|string|max:500',
                 'option_c' => 'required|string|max:500',
                 'option_d' => 'required|string|max:500',
                 'correct_answer' => 'required|in:A,B,C,D',
-                'type' => 'required|in:text,multiple_choice',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'audio' => 'nullable|mimes:mp3,wav,ogg|max:5120',
-            ]);
+            ]));
+            $validated['option_e'] = null;
+            $validated['option_count'] = null;
+        }
 
-            // Handle file uploads
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('questions/images', 'public');
-                $validated['image'] = $imagePath;
-            }
-            if ($request->hasFile('audio')) {
-                $audioPath = $request->file('audio')->store('questions/audio', 'public');
-                $validated['audio'] = $audioPath;
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('questions/images', 'public');
+        }
+        if ($request->hasFile('audio')) {
+            $validated['audio'] = $request->file('audio')->store('questions/audio', 'public');
+        }
+
+        // Option images (for multiple_choice)
+        foreach (['a', 'b', 'c', 'd'] as $letter) {
+            $fieldName = 'option_' . $letter . '_image';
+            if ($request->hasFile($fieldName)) {
+                $validated[$fieldName] = $request->file($fieldName)->store('questions/option-images', 'public');
             }
         }
 
-        $order = $bank->questions()->max('order') ?? -1;
+        $order = Question::where('sub_test_id', $request->sub_test_id)->max('order') ?? -1;
         $validated['order'] = $order + 1;
         $validated['bank_id'] = $bank->id;
+        $validated['sub_test_id'] = $request->sub_test_id;
+        $validated['is_example'] = $request->boolean('is_example');
 
         Question::create($validated);
+        ActivityLog::log('create', 'question', 'Menambahkan soal ke bank: ' . $bank->title);
 
-        return redirect()->route('banks.edit', $bank)->with('success', 'Soal berhasil ditambahkan.');
+        return redirect()->route('sub-tests.edit', $request->sub_test_id)->with('success', 'Soal berhasil ditambahkan.');
     }
 
     public function edit(Bank $bank)
     {
         $this->authorize('update', $bank);
-        $questions = $bank->questions;
-        // Ambil semua link peserta yang sudah digenerate
-        $links = $bank->responses()->orderBy('created_at', 'desc')->get();
-        return view('banks.edit', compact('bank', 'questions', 'links'));
+        $subTests = $bank->subTests()->withCount(['questions', 'exampleQuestions'])->get();
+        return view('banks.edit', compact('bank', 'subTests'));
     }
 
     public function update(Request $request, Bank $bank)
@@ -122,48 +179,127 @@ class BankController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
+            'duration_minutes' => 'nullable|integer|min:1|max:600',
         ]);
 
         $bank->update($validated);
+        ActivityLog::log('update', 'bank', 'Mengupdate bank soal: ' . $validated['title']);
         return redirect()->route('banks.edit', $bank)->with('success', 'Bank soal berhasil diperbarui.');
     }
 
     public function destroy(Bank $bank)
     {
         $this->authorize('delete', $bank);
+        ActivityLog::log('delete', 'bank', 'Menghapus bank soal: ' . $bank->title);
         $bank->delete();
         return redirect()->route('banks.index')->with('success', 'Bank soal berhasil dihapus.');
     }
 
-    public function results(Bank $bank)
-    {
-        $this->authorize('view', $bank);
-        $responses = $bank->responses()->orderBy('created_at', 'desc')->get();
-        return view('banks.results', compact('bank', 'responses'));
-    }
+    // ===== SUB-TEST CRUD =====
 
-    public function generateLink(Bank $bank)
+    private function storeSubTest(Request $request)
     {
+        $bank = Bank::findOrFail($request->bank_id);
         $this->authorize('update', $bank);
-        $token = \Illuminate\Support\Str::random(32);
-        $response = $bank->responses()->create([
-            'participant_name' => 'Peserta',
-            'participant_email' => 'participant-' . $token . '@test.local',
-            'token' => $token,
-            'is_active' => true,
+
+        $validated = $request->validate([
+            'sub_test_title' => 'required|string|max:255',
+            'sub_test_description' => 'nullable|string|max:1000',
+            'sub_test_duration' => 'nullable|integer|min:1|max:600',
         ]);
 
-        $link = route('test.show', $token);
-        return back()->with('success', 'Link berhasil dibuat.')->with('link', $link);
+        $order = $bank->subTests()->max('order') ?? -1;
+        SubTest::create([
+            'bank_id' => $bank->id,
+            'title' => $validated['sub_test_title'],
+            'description' => $validated['sub_test_description'] ?? null,
+            'duration_minutes' => $validated['sub_test_duration'] ?? null,
+            'order' => $order + 1,
+        ]);
+
+        ActivityLog::log('create', 'subtest', 'Menambahkan sub-test ke bank: ' . $bank->title);
+        return redirect()->route('banks.edit', $bank)->with('success', 'Sub-test berhasil ditambahkan.');
     }
+
+    public function editSubTest(SubTest $subTest)
+    {
+        $bank = $subTest->bank;
+        $this->authorize('update', $bank);
+        $questions = $subTest->questions;
+        $exampleQuestions = $subTest->exampleQuestions;
+        return view('banks.edit-subtest', compact('bank', 'subTest', 'questions', 'exampleQuestions'));
+    }
+
+    public function updateSubTest(Request $request, SubTest $subTest)
+    {
+        $bank = $subTest->bank;
+        $this->authorize('update', $bank);
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'duration_minutes' => 'nullable|integer|min:1|max:600',
+        ]);
+
+        $subTest->update($validated);
+        ActivityLog::log('update', 'subtest', 'Mengupdate sub-test: ' . $validated['title']);
+        return redirect()->route('sub-tests.edit', $subTest)->with('success', 'Sub-test berhasil diperbarui.');
+    }
+
+    public function deleteSubTest(SubTest $subTest)
+    {
+        $bank = $subTest->bank;
+        $this->authorize('delete', $bank);
+        ActivityLog::log('delete', 'subtest', 'Menghapus sub-test: ' . $subTest->title . ' dari bank: ' . $bank->title);
+        $subTest->delete();
+        return redirect()->route('banks.edit', $bank)->with('success', 'Sub-test berhasil dihapus.');
+    }
+
+    public function results(Bank $bank, Request $request)
+    {
+        $this->authorize('view', $bank);
+        $query = $bank->responses()
+            ->where('completed', true);
+
+        // Filter by participant name
+        if ($request->filled('nama')) {
+            $query->where('participant_name', 'like', '%' . $request->nama . '%');
+        }
+
+        // Filter by month (1-12)
+        if ($request->filled('bulan')) {
+            $query->whereMonth('completed_at', $request->bulan);
+        }
+
+        // Filter by specific date
+        if ($request->filled('tanggal')) {
+            $query->whereDate('completed_at', $request->tanggal);
+        }
+
+        $responses = $query->orderBy('completed_at', 'desc')->get();
+
+        // Load questions: from sub-tests if any, otherwise direct
+        $subTests = $bank->subTests()->with(['questions'])->get();
+        if ($subTests->count() > 0) {
+            $questions = collect();
+            foreach ($subTests as $st) {
+                $questions = $questions->merge($st->questions);
+            }
+        } else {
+            $questions = $bank->questions()->orderBy('order')->get();
+        }
+
+        return view('banks.results', compact('bank', 'responses', 'questions', 'subTests'));
+    }
+
+
 
     public function toggleBank(Bank $bank)
     {
         $this->authorize('update', $bank);
-
         $bank->update(['is_active' => !$bank->is_active]);
-
         $status = $bank->is_active ? 'dibuka' : 'ditutup';
+        ActivityLog::log('update', 'bank', 'Toggle bank soal ' . $bank->title . ': ' . $status);
         return back()->with('success', 'Link soal berhasil ' . $status . '.');
     }
 
@@ -171,170 +307,573 @@ class BankController extends Controller
     {
         $bank = $question->bank;
         $this->authorize('update', $bank);
-        return view('banks.edit-question', compact('bank', 'question'));
+        $subTest = $question->subTest;
+        return view('banks.edit-question', compact('bank', 'question', 'subTest'));
     }
 
     public function updateQuestion(Request $request, Question $question)
     {
         $bank = $question->bank;
         $this->authorize('update', $bank);
-
         $type = $request->input('type', 'multiple_choice');
 
-        if ($type === 'text') {
-            $validated = $request->validate([
-                'question' => 'required|string|max:1000',
-                'correct_answer_text' => 'required|string|max:500',
-                'type' => 'required|in:text,multiple_choice',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'audio' => 'nullable|mimes:mp3,wav,ogg|max:5120',
-            ]);
+        $baseRules = [
+            'question' => 'required|string|max:1000',
+            'type' => 'required|in:text,multiple_choice,narrative,survey',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'audio' => 'nullable|mimes:mp3,wav,ogg|max:5120',
+            'option_a_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'option_b_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'option_c_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'option_d_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ];
 
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('questions/images', 'public');
-                $validated['image'] = $imagePath;
-            }
-            if ($request->hasFile('audio')) {
-                $audioPath = $request->file('audio')->store('questions/audio', 'public');
-                $validated['audio'] = $audioPath;
-            }
-
+        if ($type === 'narrative') {
+            $validated = $request->validate($baseRules);
             $validated['option_a'] = null;
             $validated['option_b'] = null;
             $validated['option_c'] = null;
             $validated['option_d'] = null;
+            $validated['option_e'] = null;
+            $validated['option_count'] = null;
             $validated['correct_answer'] = null;
+            $validated['correct_answer_text'] = null;
+        } elseif ($type === 'text') {
+            $validated = $request->validate(array_merge($baseRules, [
+                'correct_answer_text' => 'required|string|max:500',
+            ]));
+            $validated['option_a'] = null;
+            $validated['option_b'] = null;
+            $validated['option_c'] = null;
+            $validated['option_d'] = null;
+            $validated['option_e'] = null;
+            $validated['option_count'] = null;
+            $validated['correct_answer'] = null;
+        } elseif ($type === 'survey') {
+            $optCount = (int) $request->input('option_count', 2);
+            if ($optCount < 2) $optCount = 2;
+            if ($optCount > 5) $optCount = 5;
+
+            $surveyRules = ['option_count' => 'required|integer|min:2|max:5'];
+            $labels = ['A' => 'option_a', 'B' => 'option_b', 'C' => 'option_c', 'D' => 'option_d', 'E' => 'option_e'];
+            $i = 0;
+            foreach ($labels as $letter => $field) {
+                $i++;
+                if ($i <= $optCount) {
+                    $surveyRules[$field] = 'required|string|max:500';
+                }
+            }
+
+            $validated = $request->validate(array_merge($baseRules, $surveyRules));
+
+            $i = 0;
+            foreach ($labels as $letter => $field) {
+                $i++;
+                if ($i > $optCount) {
+                    $validated[$field] = null;
+                }
+            }
+            $validated['option_count'] = $optCount;
+            $validated['correct_answer'] = null;
+            $validated['correct_answer_text'] = null;
         } else {
-            $validated = $request->validate([
-                'question' => 'required|string|max:1000',
+            $validated = $request->validate(array_merge($baseRules, [
                 'option_a' => 'required|string|max:500',
                 'option_b' => 'required|string|max:500',
                 'option_c' => 'required|string|max:500',
                 'option_d' => 'required|string|max:500',
                 'correct_answer' => 'required|in:A,B,C,D',
-                'type' => 'required|in:text,multiple_choice',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'audio' => 'nullable|mimes:mp3,wav,ogg|max:5120',
-            ]);
+            ]));
+            $validated['option_e'] = null;
+            $validated['option_count'] = null;
+        }
 
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('questions/images', 'public');
-                $validated['image'] = $imagePath;
-            }
-            if ($request->hasFile('audio')) {
-                $audioPath = $request->file('audio')->store('questions/audio', 'public');
-                $validated['audio'] = $audioPath;
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('questions/images', 'public');
+        }
+        if ($request->hasFile('audio')) {
+            $validated['audio'] = $request->file('audio')->store('questions/audio', 'public');
+        }
+
+        // Option images (for multiple_choice)
+        foreach (['a', 'b', 'c', 'd'] as $letter) {
+            $fieldName = 'option_' . $letter . '_image';
+            if ($request->hasFile($fieldName)) {
+                $validated[$fieldName] = $request->file($fieldName)->store('questions/option-images', 'public');
+            } elseif ($request->input('remove_' . $fieldName) === '1') {
+                $validated[$fieldName] = null;
             }
         }
 
         $question->update($validated);
-        return redirect()->route('banks.edit', $bank)->with('success', 'Soal berhasil diperbarui.');
+        ActivityLog::log('update', 'question', 'Mengupdate soal di bank: ' . $bank->title);
+        return redirect()->route('sub-tests.edit', $question->sub_test_id)->with('success', 'Soal berhasil diperbarui.');
     }
 
     public function deleteQuestion(Question $question)
     {
         $bank = $question->bank;
         $this->authorize('update', $bank);
+        ActivityLog::log('delete', 'question', 'Menghapus soal dari bank: ' . $bank->title);
         $question->delete();
         return back()->with('success', 'Soal berhasil dihapus.');
     }
 
-    public function exportResults(Bank $bank)
+    /**
+     * Export individual participant result as PDF.
+     */
+    public function exportParticipantPdf(Bank $bank, ParticipantResponse $response)
     {
         $this->authorize('view', $bank);
 
-        $responses = $bank->responses()->orderBy('created_at', 'desc')->get();
+        if ($response->bank_id !== $bank->id) {
+            abort(404);
+        }
+
         $questions = $bank->questions()->orderBy('order')->get();
 
-        $fileName = 'bank-' . $bank->id . '-results.csv';
-
-        $callback = function () use ($responses, $questions) {
-            $out = fopen('php://output', 'w');
-
-            $header = ['participant_name', 'participant_email', 'score', 'completed_at'];
-            foreach ($questions as $q) {
-                $header[] = 'Q' . ($q->order ?? $q->id);
+        // If bank has sub-tests, load questions from sub-tests instead
+        $subTests = $bank->subTests()->with(['questions'])->get();
+        if ($subTests->count() > 0) {
+            $questions = collect();
+            foreach ($subTests as $st) {
+                $questions = $questions->merge($st->questions);
             }
+        }
 
-            fputcsv($out, $header);
+        $totalQuestions = $questions->count();
+        $scoreableQuestions = $questions->whereNotIn('type', ['narrative', 'survey'])->count();
+        $percentage = $scoreableQuestions > 0 ? round(($response->score / $scoreableQuestions) * 100, 2) : 0;
+        $answers = $response->responses ?? [];
 
-            foreach ($responses as $r) {
-                $row = [
-                    $r->participant_name,
-                    $r->participant_email,
-                    $r->score,
-                    $r->completed_at ? $r->completed_at->toDateTimeString() : '',
-                ];
+        $pdf = Pdf::loadView('banks.participant-pdf', compact(
+            'bank', 'response', 'questions', 'totalQuestions', 'percentage', 'answers'
+        ));
 
-                $answers = $r->responses ?? [];
-                foreach ($questions as $q) {
-                    $row[] = $answers[$q->id] ?? '';
-                }
+        $pdf->setPaper('A4', 'portrait');
 
-                fputcsv($out, $row);
-            }
+        $fileName = 'hasil_tes_' . str_replace(' ', '_', $response->participant_name) . '_' . date('Ymd') . '.pdf';
 
-            fclose($out);
-        };
-
-        return response()->streamDownload($callback, $fileName, [
-            'Content-Type' => 'text/csv',
-        ]);
+        return $pdf->download($fileName);
     }
 
-    public function exportExcel(Bank $bank)
+    /**
+     * Export all participant results as Excel (.xlsx) - Google Forms style.
+     * Includes full question text, answer options, and participant answers.
+     */
+    public function exportExcel(Bank $bank, Request $request)
     {
         $this->authorize('view', $bank);
 
-        $responses = $bank->responses()->orderBy('created_at', 'desc')->get();
-        $questions = $bank->questions()->orderBy('order')->get();
-
-        $total = $questions->count();
-        $fileName = 'bank-' . $bank->id . '-results-' . date('Y-m-d-His') . '.csv';
-
-        $callback = function () use ($responses, $questions, $total) {
-            $out = fopen('php://output', 'w');
-
-            // Set UTF-8 BOM for proper Excel encoding
-            fwrite($out, "\xEF\xBB\xBF");
-
-            // Header row
-            $header = ['Nama Peserta', 'Email', 'Skor', 'Persentase (%)', 'Status', 'Waktu Selesai'];
-            foreach ($questions as $q) {
-                $header[] = 'Q' . ($q->order + 1 ?? $q->id) . ': ' . substr($q->question, 0, 50);
+        // Load questions: from sub-tests if any, otherwise direct
+        $subTests = $bank->subTests()->with(['questions'])->get();
+        if ($subTests->count() > 0) {
+            $questions = collect();
+            foreach ($subTests as $st) {
+                $questions = $questions->merge($st->questions);
             }
+        } else {
+            $questions = $bank->questions()->orderBy('order')->get();
+        }
 
-            fputcsv($out, $header, ';');
+        $query = $bank->responses()
+            ->where('completed', true);
 
-            // Data rows
-            foreach ($responses as $r) {
-                $percentage = $total > 0 ? round(($r->score / $total) * 100, 2) : 0;
+        // Apply same filters as results page
+        if ($request->filled('nama')) {
+            $query->where('participant_name', 'like', '%' . $request->nama . '%');
+        }
+        if ($request->filled('bulan')) {
+            $query->whereMonth('completed_at', $request->bulan);
+        }
+        if ($request->filled('tanggal')) {
+            $query->whereDate('completed_at', $request->tanggal);
+        }
 
-                $row = [
-                    $r->participant_name,
-                    $r->participant_email,
-                    $r->score,
-                    $percentage,
-                    $r->completed ? 'Selesai' : 'Berlangsung',
-                    $r->completed_at ? $r->completed_at->format('d/m/Y H:i') : '',
-                ];
+        $responses = $query->orderBy('completed_at', 'asc')->get();
 
-                // Each question answer in separate column
-                $answers = $r->responses ?? [];
-                foreach ($questions as $q) {
-                    $answer = $answers[$q->id] ?? '';
-                    $row[] = $answer;
-                }
+        $totalQuestions = $questions->count();
+        $scoreableQuestions = $questions->whereNotIn('type', ['narrative', 'survey'])->count();
 
-                fputcsv($out, $row, ';');
-            }
+        // Build headers
+        $headers = [
+            'No',
+            'Waktu Selesai',
+            'Nama Peserta',
+            'NIK',
+            'Email',
+            'No. Telepon',
+            'Departemen',
+            'Jabatan',
+            'Skor',
+            'Total Soal Dinilai',
+            'Persentase (%)',
+            'Keterangan',
+            'Durasi',
+        ];
 
-            fclose($out);
-        };
+        // Add each question as a column header with full question text
+        $typeLabelMap = ['narrative' => '[Narasi]', 'text' => '[Isian]'];
+        foreach ($questions as $index => $question) {
+            $typeLabel = isset($typeLabelMap[$question->type]) ? $typeLabelMap[$question->type] : '[PG]';
+            $prefix = $question->subTest ? $question->subTest->title . ' - ' : '';
+            $headers[] = 'Q' . ($index + 1) . ' ' . $typeLabel . ': ' . $prefix . $question->question;
+        }
 
-        return response()->streamDownload($callback, $fileName, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        $spreadsheet = new Spreadsheet();
+
+        // ===== SHEET 1: Hasil Tes =====
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Hasil Tes');
+
+        $lastColIndex = count($headers);
+        $lastColLetter = Coordinate::stringFromColumnIndex($lastColIndex);
+
+        // -- Title row --
+        $sheet->mergeCells('A1:' . $lastColLetter . '1');
+        $sheet->getCellByColumnAndRow(1, 1)->setValue('HASIL TES: ' . mb_strtoupper($bank->title));
+        $sheet->getStyle('A1')->applyFromArray([
+            'font' => ['bold' => true, 'size' => 14, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '003E6F']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
         ]);
+        $sheet->getRowDimension(1)->setRowHeight(30);
+
+        // -- Info row --
+        $sheet->mergeCells('A2:' . $lastColLetter . '2');
+        $filterInfo = '';
+        if ($request->filled('nama')) $filterInfo .= ' | Filter Nama: ' . $request->nama;
+        if ($request->filled('bulan')) {
+            $bulanNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+            $filterInfo .= ' | Filter Bulan: ' . ($bulanNames[$request->bulan - 1] ?? $request->bulan);
+        }
+        if ($request->filled('tanggal')) $filterInfo .= ' | Filter Tanggal: ' . $request->tanggal;
+        $sheet->getCellByColumnAndRow(1, 2)->setValue(
+            'Tanggal Export: ' . now()->format('d/m/Y H:i') .
+            ' | Total Peserta: ' . $responses->count() .
+            ' | Total Soal: ' . $totalQuestions .
+            ' | Soal Dinilai: ' . $scoreableQuestions .
+            ($totalQuestions > $scoreableQuestions ? ' | Soal Narasi/Survei: ' . ($totalQuestions - $scoreableQuestions) : '') .
+            $filterInfo
+        );
+        $sheet->getStyle('A2')->applyFromArray([
+            'font' => ['size' => 10, 'color' => ['rgb' => '475569']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F1F5F9']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+        ]);
+
+        // -- Headers (row 4) --
+        $headerRow = 4;
+        foreach ($headers as $col => $header) {
+            $sheet->getCellByColumnAndRow($col + 1, $headerRow)->setValue($header);
+        }
+
+        $headerRange = 'A' . $headerRow . ':' . $lastColLetter . $headerRow;
+        $sheet->getStyle($headerRange)->applyFromArray([
+            'font' => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '003E6F']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]],
+        ]);
+        $sheet->getRowDimension($headerRow)->setRowHeight(50);
+
+        // -- Correct answer reference row (row 5) --
+        $refRow = $headerRow + 1;
+        $sheet->getCellByColumnAndRow(1, $refRow)->setValue('');
+        $sheet->getCellByColumnAndRow(2, $refRow)->setValue('KUNCI JAWABAN');
+        $sheet->mergeCells('B' . $refRow . ':H' . $refRow);
+
+        $fixedCols = 13;
+        foreach ($questions as $qIdx => $question) {
+            $colIdx = $fixedCols + $qIdx + 1;
+            if ($question->type === 'narrative') {
+                $sheet->getCellByColumnAndRow($colIdx, $refRow)->setValue('(Narasi)');
+            } elseif ($question->type === 'text') {
+                $sheet->getCellByColumnAndRow($colIdx, $refRow)->setValue($question->correct_answer_text);
+            } else {
+                // For MC, show letter + option text
+                $optionMap = ['A' => $question->option_a, 'B' => $question->option_b, 'C' => $question->option_c, 'D' => $question->option_d];
+                $correctLetter = $question->correct_answer;
+                $correctText = $optionMap[$correctLetter] ?? '';
+                $sheet->getCellByColumnAndRow($colIdx, $refRow)->setValue($correctLetter . '. ' . $correctText);
+            }
+        }
+
+        $refRange = 'A' . $refRow . ':' . $lastColLetter . $refRow;
+        $sheet->getStyle($refRange)->applyFromArray([
+            'font' => ['bold' => true, 'size' => 9, 'color' => ['rgb' => '065F46']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'D1FAE5']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'wrapText' => true],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'A7F3D0']]],
+        ]);
+
+        // -- Participant data rows --
+        $dataStartRow = $refRow + 1;
+        $currentRow = $dataStartRow;
+
+        foreach ($responses as $idx => $resp) {
+            $percentage = $scoreableQuestions > 0 ? round(($resp->score / $scoreableQuestions) * 100, 2) : 0;
+            $duration = ($resp->started_at && $resp->completed_at)
+                ? $resp->started_at->diff($resp->completed_at)->format('%H:%I:%S')
+                : '-';
+            $keterangan = $percentage >= 70 ? 'BAIK' : ($percentage >= 50 ? 'CUKUP' : 'KURANG');
+
+            $sheet->getCellByColumnAndRow(1, $currentRow)->setValue($idx + 1);
+            $sheet->getCellByColumnAndRow(2, $currentRow)->setValue(
+                $resp->completed_at ? $resp->completed_at->format('d/m/Y H:i:s') : '-'
+            );
+            $sheet->getCellByColumnAndRow(3, $currentRow)->setValue($resp->participant_name);
+            $sheet->getCellByColumnAndRow(4, $currentRow)->setValue($resp->nik ?? '-');
+            $sheet->getCellByColumnAndRow(5, $currentRow)->setValue($resp->participant_email ?? '-');
+            $sheet->getCellByColumnAndRow(6, $currentRow)->setValue($resp->phone ?? '-');
+            $sheet->getCellByColumnAndRow(7, $currentRow)->setValue($resp->department ?? '-');
+            $sheet->getCellByColumnAndRow(8, $currentRow)->setValue($resp->position ?? '-');
+            $sheet->getCellByColumnAndRow(9, $currentRow)->setValue($resp->score);
+            $sheet->getCellByColumnAndRow(10, $currentRow)->setValue($scoreableQuestions);
+            $sheet->getCellByColumnAndRow(11, $currentRow)->setValue($percentage);
+            $sheet->getCellByColumnAndRow(12, $currentRow)->setValue($keterangan);
+            $sheet->getCellByColumnAndRow(13, $currentRow)->setValue($duration);
+
+            // Answer columns - show full answer text
+            $answers = $resp->responses ?? [];
+            foreach ($questions as $qIdx => $question) {
+                $colIdx = $fixedCols + $qIdx + 1;
+                $userAnswer = $answers[$question->id] ?? '';
+
+                if ($question->type === 'narrative') {
+                    // Show full narrative text
+                    $sheet->getCellByColumnAndRow($colIdx, $currentRow)->setValue((string)$userAnswer);
+                } elseif ($question->type === 'text') {
+                    $sheet->getCellByColumnAndRow($colIdx, $currentRow)->setValue((string)$userAnswer);
+
+                    // Color code text answers
+                    $isCorrect = strtolower(trim((string)$userAnswer)) === strtolower(trim((string)$question->correct_answer_text));
+                    if (!empty($userAnswer)) {
+                        $cellRef = Coordinate::stringFromColumnIndex($colIdx) . $currentRow;
+                        if ($isCorrect) {
+                            $sheet->getStyle($cellRef)->getFont()->getColor()->setRGB('065F46');
+                            $sheet->getStyle($cellRef)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('D1FAE5');
+                        } else {
+                            $sheet->getStyle($cellRef)->getFont()->getColor()->setRGB('991B1B');
+                            $sheet->getStyle($cellRef)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FEE2E2');
+                        }
+                    }
+                } else {
+                    // MC: show letter + option text
+                    $optionMap = ['A' => $question->option_a, 'B' => $question->option_b, 'C' => $question->option_c, 'D' => $question->option_d];
+                    $displayAnswer = '';
+                    if (!empty($userAnswer) && isset($optionMap[$userAnswer])) {
+                        $displayAnswer = $userAnswer . '. ' . $optionMap[$userAnswer];
+                    } else {
+                        $displayAnswer = (string)$userAnswer;
+                    }
+                    $sheet->getCellByColumnAndRow($colIdx, $currentRow)->setValue($displayAnswer);
+
+                    // Color code MC answers
+                    $isCorrect = $userAnswer === $question->correct_answer;
+                    if (!empty($userAnswer)) {
+                        $cellRef = Coordinate::stringFromColumnIndex($colIdx) . $currentRow;
+                        if ($isCorrect) {
+                            $sheet->getStyle($cellRef)->getFont()->getColor()->setRGB('065F46');
+                            $sheet->getStyle($cellRef)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('D1FAE5');
+                        } else {
+                            $sheet->getStyle($cellRef)->getFont()->getColor()->setRGB('991B1B');
+                            $sheet->getStyle($cellRef)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FEE2E2');
+                        }
+                    }
+                }
+            }
+
+            $currentRow++;
+        }
+
+        // -- Style data rows --
+        if ($currentRow > $dataStartRow) {
+            $dataRange = 'A' . $dataStartRow . ':' . $lastColLetter . ($currentRow - 1);
+            $sheet->getStyle($dataRange)->applyFromArray([
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E2E8F0']]],
+                'alignment' => ['vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+                'font' => ['size' => 10],
+            ]);
+
+            // Center-align fixed columns
+            foreach ([1, 6, 7, 8, 9, 10] as $centerCol) {
+                $colLetter = Coordinate::stringFromColumnIndex($centerCol);
+                $sheet->getStyle($colLetter . $dataStartRow . ':' . $colLetter . ($currentRow - 1))
+                    ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            }
+
+            // Alternate row colors
+            for ($r = $dataStartRow; $r < $currentRow; $r++) {
+                if (($r - $dataStartRow) % 2 === 1) {
+                    $sheet->getStyle('A' . $r . ':' . $lastColLetter . $r)->applyFromArray([
+                        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F8FAFC']],
+                    ]);
+                }
+            }
+
+            // Keterangan column coloring
+            $ketCol = Coordinate::stringFromColumnIndex(9);
+            for ($r = $dataStartRow; $r < $currentRow; $r++) {
+                $val = $sheet->getCell($ketCol . $r)->getValue();
+                if ($val === 'BAIK') {
+                    $sheet->getStyle($ketCol . $r)->getFont()->getColor()->setRGB('065F46');
+                    $sheet->getStyle($ketCol . $r)->getFont()->setBold(true);
+                } elseif ($val === 'CUKUP') {
+                    $sheet->getStyle($ketCol . $r)->getFont()->getColor()->setRGB('92400E');
+                    $sheet->getStyle($ketCol . $r)->getFont()->setBold(true);
+                } else {
+                    $sheet->getStyle($ketCol . $r)->getFont()->getColor()->setRGB('991B1B');
+                    $sheet->getStyle($ketCol . $r)->getFont()->setBold(true);
+                }
+            }
+        }
+
+        // -- Auto-size fixed columns --
+        foreach (range(1, $fixedCols) as $colIdx) {
+            $colLetter = Coordinate::stringFromColumnIndex($colIdx);
+            $sheet->getColumnDimension($colLetter)->setAutoSize(true);
+        }
+
+        // Question columns: wider to show answer text
+        for ($qCol = $fixedCols + 1; $qCol <= $lastColIndex; $qCol++) {
+            $colLetter = Coordinate::stringFromColumnIndex($qCol);
+            $sheet->getColumnDimension($colLetter)->setWidth(30);
+        }
+
+        // Freeze header
+        $sheet->freezePane('A' . ($headerRow + 1));
+        $sheet->setAutoFilter($headerRange);
+
+        // ===== SHEET 2: Daftar Soal =====
+        $questionSheet = $spreadsheet->createSheet();
+        $questionSheet->setTitle('Daftar Soal');
+
+        // Headers
+        $qHeaders = ['No', 'Tipe Soal', 'Pertanyaan', 'Opsi A', 'Opsi B', 'Opsi C', 'Opsi D', 'Jawaban Benar'];
+        foreach ($qHeaders as $col => $header) {
+            $questionSheet->getCellByColumnAndRow($col + 1, 1)->setValue($header);
+        }
+
+        $qLastCol = Coordinate::stringFromColumnIndex(count($qHeaders));
+        $questionSheet->getStyle('A1:' . $qLastCol . '1')->applyFromArray([
+            'font' => ['bold' => true, 'size' => 11, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '003E6F']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]],
+        ]);
+        $questionSheet->getRowDimension(1)->setRowHeight(25);
+
+        // Question data
+        foreach ($questions as $index => $question) {
+            $row = $index + 2;
+            $typeMap2 = ['narrative' => 'Narasi', 'text' => 'Isian'];
+            $typeLabel = isset($typeMap2[$question->type]) ? $typeMap2[$question->type] : 'Pilihan Ganda';
+
+            $questionSheet->getCellByColumnAndRow(1, $row)->setValue($index + 1);
+            $questionSheet->getCellByColumnAndRow(2, $row)->setValue($typeLabel);
+            $questionSheet->getCellByColumnAndRow(3, $row)->setValue($question->question);
+
+            if ($question->type === 'multiple_choice') {
+                $questionSheet->getCellByColumnAndRow(4, $row)->setValue($question->option_a);
+                $questionSheet->getCellByColumnAndRow(5, $row)->setValue($question->option_b);
+                $questionSheet->getCellByColumnAndRow(6, $row)->setValue($question->option_c);
+                $questionSheet->getCellByColumnAndRow(7, $row)->setValue($question->option_d);
+                $optionMap = ['A' => $question->option_a, 'B' => $question->option_b, 'C' => $question->option_c, 'D' => $question->option_d];
+                $questionSheet->getCellByColumnAndRow(8, $row)->setValue($question->correct_answer . '. ' . ($optionMap[$question->correct_answer] ?? ''));
+            } elseif ($question->type === 'text') {
+                $questionSheet->getCellByColumnAndRow(4, $row)->setValue('-');
+                $questionSheet->getCellByColumnAndRow(5, $row)->setValue('-');
+                $questionSheet->getCellByColumnAndRow(6, $row)->setValue('-');
+                $questionSheet->getCellByColumnAndRow(7, $row)->setValue('-');
+                $questionSheet->getCellByColumnAndRow(8, $row)->setValue($question->correct_answer_text);
+            } else {
+                $questionSheet->getCellByColumnAndRow(4, $row)->setValue('-');
+                $questionSheet->getCellByColumnAndRow(5, $row)->setValue('-');
+                $questionSheet->getCellByColumnAndRow(6, $row)->setValue('-');
+                $questionSheet->getCellByColumnAndRow(7, $row)->setValue('-');
+                $questionSheet->getCellByColumnAndRow(8, $row)->setValue('(Tidak Ada - Narasi)');
+            }
+
+            // Alternate row colors
+            if ($index % 2 === 1) {
+                $questionSheet->getStyle('A' . $row . ':' . $qLastCol . $row)->applyFromArray([
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F1F5F9']],
+                ]);
+            }
+        }
+
+        // Style question data
+        if ($questions->count() > 0) {
+            $questionSheet->getStyle('A2:' . $qLastCol . ($questions->count() + 1))->applyFromArray([
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E2E8F0']]],
+                'alignment' => ['vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+                'font' => ['size' => 10],
+            ]);
+        }
+
+        // Auto-size columns
+        $questionSheet->getColumnDimension('A')->setWidth(6);
+        $questionSheet->getColumnDimension('B')->setWidth(14);
+        $questionSheet->getColumnDimension('C')->setWidth(50);
+        foreach (['D', 'E', 'F', 'G'] as $col) {
+            $questionSheet->getColumnDimension($col)->setWidth(25);
+        }
+        $questionSheet->getColumnDimension('H')->setWidth(30);
+
+        // Set active sheet back to results
+        $spreadsheet->setActiveSheetIndex(0);
+
+        $fileName = 'hasil_tes_' . str_replace(' ', '_', $bank->title) . '_' . date('Y-m-d_His') . '.xlsx';
+        $tempFile = tempnam(sys_get_temp_dir(), 'results');
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($tempFile);
+
+        ActivityLog::log('export', 'bank', 'Export hasil tes bank: ' . $bank->title);
+
+        return response()->download($tempFile, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Show cheat/violation log for all banks (recruitment feature).
+     */
+    public function cheatLog(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        // Get all shared bank IDs
+        if ($user->isSuperAdmin() || $user->isRecruitmentTeam()) {
+            $sharedUserIds = \App\Models\User::whereIn('role', ['superadmin', 'recruitmentteam'])->pluck('id');
+            $bankIds = Bank::whereIn('user_id', $sharedUserIds)->pluck('id');
+        } else {
+            $bankIds = Bank::where('user_id', $user->id)->pluck('id');
+        }
+
+        $query = ParticipantResponse::whereIn('bank_id', $bankIds)
+            ->where('completed', true)
+            ->where('violation_count', '>', 0)
+            ->with('bank');
+
+        // Filters
+        if ($request->filled('nama')) {
+            $query->where('participant_name', 'like', '%' . $request->nama . '%');
+        }
+        if ($request->filled('bank_id')) {
+            $query->where('bank_id', $request->bank_id);
+        }
+        if ($request->filled('bulan')) {
+            $query->whereMonth('completed_at', $request->bulan);
+        }
+        if ($request->filled('tanggal')) {
+            $query->whereDate('completed_at', $request->tanggal);
+        }
+
+        $violations = $query->orderBy('violation_count', 'desc')->orderBy('completed_at', 'desc')->get();
+        $banks = Bank::whereIn('id', $bankIds)->orderBy('title')->get();
+
+        return view('banks.cheat-log', compact('violations', 'banks'));
     }
 }

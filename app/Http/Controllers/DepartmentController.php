@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Department;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 
 class DepartmentController extends Controller
@@ -24,6 +25,7 @@ class DepartmentController extends Controller
             'name' => 'required|string|max:255|unique:departments,name',
         ]);
         Department::create($validated);
+        ActivityLog::log('create', 'department', 'Menambahkan departemen: ' . $validated['name']);
         return redirect()->route('departments.index')->with('success', 'Departemen berhasil ditambahkan.');
     }
 
@@ -38,12 +40,14 @@ class DepartmentController extends Controller
             'name' => 'required|string|max:255|unique:departments,name,' . $department->id,
         ]);
         $department->update($validated);
+        ActivityLog::log('update', 'department', 'Mengupdate departemen: ' . $validated['name']);
         return redirect()->route('departments.index')->with('success', 'Departemen berhasil diupdate.');
     }
 
     public function destroy(Department $department)
     {
         $department->delete();
+        ActivityLog::log('delete', 'department', 'Menghapus departemen: ' . $department->name);
         return redirect()->route('departments.index')->with('success', 'Departemen berhasil dihapus.');
     }
 }
