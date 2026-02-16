@@ -1,0 +1,795 @@
+-- MySQL dump 10.13  Distrib 8.4.3, for Win64 (x86_64)
+--
+-- Host: localhost    Database: db_assesment_karyawanbaru
+-- ------------------------------------------------------
+-- Server version	8.4.3
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `activity_logs`
+--
+
+DROP TABLE IF EXISTS `activity_logs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `activity_logs` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned DEFAULT NULL,
+  `user_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `action` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `module` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ip_address` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `details` text COLLATE utf8mb4_unicode_ci,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `activity_logs_module_created_at_index` (`module`,`created_at`),
+  KEY `activity_logs_user_id_index` (`user_id`),
+  CONSTRAINT `activity_logs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=142 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `activity_logs`
+--
+
+LOCK TABLES `activity_logs` WRITE;
+/*!40000 ALTER TABLE `activity_logs` DISABLE KEYS */;
+INSERT INTO `activity_logs` VALUES (1,2,'admin','clear','system','Menghapus semua log aktivitas','127.0.0.1',NULL,'2026-02-10 01:07:04','2026-02-10 01:07:04'),(2,2,'admin','create','bank','Membuat bank soal: Psikotest (Test Purpose Only)','127.0.0.1',NULL,'2026-02-10 01:08:15','2026-02-10 01:08:15'),(3,2,'admin','create','question','Menambahkan soal ke bank: Psikotest (Test Purpose Only)','127.0.0.1',NULL,'2026-02-10 01:08:38','2026-02-10 01:08:38'),(4,2,'admin','create','question','Menambahkan soal ke bank: Psikotest (Test Purpose Only)','127.0.0.1',NULL,'2026-02-10 01:08:59','2026-02-10 01:08:59'),(5,2,'admin','update','bank','Mengupdate bank soal: Psikotest (Test Purpose Only)','127.0.0.1',NULL,'2026-02-10 01:09:04','2026-02-10 01:09:04'),(6,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-10 17:53:38','2026-02-10 17:53:38'),(7,2,'admin','logout','auth','User admin logout','127.0.0.1',NULL,'2026-02-10 19:05:27','2026-02-10 19:05:27'),(8,8,'Recruitment Team','login','auth','User Recruitment Team berhasil login','127.0.0.1',NULL,'2026-02-10 19:06:10','2026-02-10 19:06:10'),(9,8,'Recruitment Team','create','bank','Membuat bank soal: Tes','127.0.0.1',NULL,'2026-02-10 19:11:35','2026-02-10 19:11:35'),(10,8,'Recruitment Team','create','question','Menambahkan soal ke bank: Tes','127.0.0.1',NULL,'2026-02-10 19:11:50','2026-02-10 19:11:50'),(11,8,'Recruitment Team','logout','auth','User Recruitment Team logout','127.0.0.1',NULL,'2026-02-10 19:12:07','2026-02-10 19:12:07'),(12,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-10 19:12:11','2026-02-10 19:12:11'),(13,2,'admin','logout','auth','User admin logout','127.0.0.1',NULL,'2026-02-10 19:15:17','2026-02-10 19:15:17'),(14,8,'Recruitment Team','login','auth','User Recruitment Team berhasil login','127.0.0.1',NULL,'2026-02-10 19:15:35','2026-02-10 19:15:35'),(15,8,'Recruitment Team','export','bank','Export hasil tes bank: Psikotest (Test Purpose Only)','127.0.0.1',NULL,'2026-02-10 19:33:41','2026-02-10 19:33:41'),(16,8,'Recruitment Team','export','bank','Export hasil tes bank: Psikotest (Test Purpose Only)','127.0.0.1',NULL,'2026-02-10 19:44:09','2026-02-10 19:44:09'),(17,8,'Recruitment Team','logout','auth','User Recruitment Team logout','127.0.0.1',NULL,'2026-02-10 20:05:04','2026-02-10 20:05:04'),(18,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-10 20:05:10','2026-02-10 20:05:10'),(19,2,'admin','logout','auth','User admin logout','127.0.0.1',NULL,'2026-02-10 20:05:23','2026-02-10 20:05:23'),(20,8,'Recruitment Team','login','auth','User Recruitment Team berhasil login','127.0.0.1',NULL,'2026-02-10 20:05:41','2026-02-10 20:05:41'),(21,8,'Recruitment Team','delete','bank','Menghapus bank soal: Psikotest (Test Purpose Only)','127.0.0.1',NULL,'2026-02-10 21:33:29','2026-02-10 21:33:29'),(22,8,'Recruitment Team','delete','bank','Menghapus bank soal: Tes','127.0.0.1',NULL,'2026-02-10 21:33:32','2026-02-10 21:33:32'),(23,8,'Recruitment Team','logout','auth','User Recruitment Team logout','127.0.0.1',NULL,'2026-02-10 23:57:54','2026-02-10 23:57:54'),(24,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-10 23:57:58','2026-02-10 23:57:58'),(25,2,'admin','logout','auth','User admin logout','127.0.0.1',NULL,'2026-02-11 00:01:57','2026-02-11 00:01:57'),(26,8,'Recruitment Team','login','auth','User Recruitment Team berhasil login','127.0.0.1',NULL,'2026-02-11 00:02:17','2026-02-11 00:02:17'),(27,8,'Recruitment Team','create','bank','Membuat bank soal: tes','127.0.0.1',NULL,'2026-02-11 00:02:36','2026-02-11 00:02:36'),(28,8,'Recruitment Team','create','question','Menambahkan soal ke bank: tes','127.0.0.1',NULL,'2026-02-11 00:03:04','2026-02-11 00:03:04'),(29,8,'Recruitment Team','export','bank','Export hasil tes bank: tes','127.0.0.1',NULL,'2026-02-11 00:04:35','2026-02-11 00:04:35'),(30,8,'Recruitment Team','logout','auth','User Recruitment Team logout','127.0.0.1',NULL,'2026-02-11 00:08:56','2026-02-11 00:08:56'),(31,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-11 00:09:00','2026-02-11 00:09:00'),(32,2,'admin','create','bank','Membuat bank soal: Tes Tingkat Staff','127.0.0.1',NULL,'2026-02-11 00:11:06','2026-02-11 00:11:06'),(33,2,'admin','update','bank','Mengupdate bank soal: Tingkat Operator','127.0.0.1',NULL,'2026-02-11 00:11:22','2026-02-11 00:11:22'),(34,2,'admin','create','question','Menambahkan soal ke bank: Tes Tingkat Staff','127.0.0.1',NULL,'2026-02-11 00:11:55','2026-02-11 00:11:55'),(35,2,'admin','delete','question','Menghapus soal dari bank: Tingkat Operator','127.0.0.1',NULL,'2026-02-11 00:12:04','2026-02-11 00:12:04'),(36,2,'admin','create','bank','Membuat bank soal: asdasdasdas','127.0.0.1',NULL,'2026-02-11 02:23:04','2026-02-11 02:23:04'),(37,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-11 17:32:18','2026-02-11 17:32:18'),(38,2,'admin','create','bank','Membuat bank soal: Test Tingkat Operator','127.0.0.1',NULL,'2026-02-11 17:33:03','2026-02-11 17:33:03'),(39,2,'admin','create','subtest','Menambahkan sub-test ke bank: Test Tingkat Operator','127.0.0.1',NULL,'2026-02-11 17:33:48','2026-02-11 17:33:48'),(40,2,'admin','logout','auth','User admin logout','127.0.0.1',NULL,'2026-02-11 18:07:08','2026-02-11 18:07:08'),(41,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-11 18:07:16','2026-02-11 18:07:16'),(42,2,'admin','create','question','Menambahkan soal ke bank: Test Tingkat Operator','127.0.0.1',NULL,'2026-02-11 18:08:52','2026-02-11 18:08:52'),(43,2,'admin','create','question','Menambahkan soal ke bank: Test Tingkat Operator','127.0.0.1',NULL,'2026-02-11 18:09:35','2026-02-11 18:09:35'),(44,2,'admin','update','subtest','Mengupdate sub-test: Tes Psikotest','127.0.0.1',NULL,'2026-02-11 18:09:40','2026-02-11 18:09:40'),(45,2,'admin','create','subtest','Menambahkan sub-test ke bank: Test Tingkat Operator','127.0.0.1',NULL,'2026-02-11 18:10:04','2026-02-11 18:10:04'),(46,2,'admin','create','question','Menambahkan soal ke bank: Test Tingkat Operator','127.0.0.1',NULL,'2026-02-11 18:10:37','2026-02-11 18:10:37'),(47,2,'admin','delete','question','Menghapus soal dari bank: Test Tingkat Operator','127.0.0.1',NULL,'2026-02-11 18:11:05','2026-02-11 18:11:05'),(48,2,'admin','create','question','Menambahkan soal ke bank: Test Tingkat Operator','127.0.0.1',NULL,'2026-02-11 18:11:27','2026-02-11 18:11:27'),(49,2,'admin','update','subtest','Mengupdate sub-test: Tes Teknis','127.0.0.1',NULL,'2026-02-11 18:11:33','2026-02-11 18:11:33'),(50,2,'admin','update','bank','Mengupdate bank soal: Test Tingkat Operator','127.0.0.1',NULL,'2026-02-11 18:11:41','2026-02-11 18:11:41'),(51,2,'admin','update','bank','Mengupdate bank soal: Test Tingkat Operator','127.0.0.1',NULL,'2026-02-11 18:11:45','2026-02-11 18:11:45'),(52,2,'admin','export','bank','Export hasil tes bank: Test Tingkat Operator','127.0.0.1',NULL,'2026-02-11 18:14:05','2026-02-11 18:14:05'),(53,2,'admin','logout','auth','User admin logout','127.0.0.1',NULL,'2026-02-11 18:15:06','2026-02-11 18:15:06'),(54,8,'Recruitment Team','login','auth','User Recruitment Team berhasil login','127.0.0.1',NULL,'2026-02-11 18:15:22','2026-02-11 18:15:22'),(55,8,'Recruitment Team','delete','bank','Menghapus bank soal: Tes Tingkat Staff','127.0.0.1',NULL,'2026-02-11 18:16:06','2026-02-11 18:16:06'),(56,8,'Recruitment Team','delete','bank','Menghapus bank soal: asdasdasdas','127.0.0.1',NULL,'2026-02-11 18:16:08','2026-02-11 18:16:08'),(57,8,'Recruitment Team','delete','bank','Menghapus bank soal: Tingkat Operator','127.0.0.1',NULL,'2026-02-11 18:16:12','2026-02-11 18:16:12'),(58,8,'Recruitment Team','logout','auth','User Recruitment Team logout','127.0.0.1',NULL,'2026-02-11 18:16:29','2026-02-11 18:16:29'),(59,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-11 18:16:36','2026-02-11 18:16:36'),(60,2,'admin','logout','auth','User admin logout','127.0.0.1',NULL,'2026-02-11 18:19:52','2026-02-11 18:19:52'),(61,8,'Recruitment Team','login','auth','User Recruitment Team berhasil login','127.0.0.1',NULL,'2026-02-11 18:20:06','2026-02-11 18:20:06'),(62,8,'Recruitment Team','create','question','Menambahkan soal ke bank: Test Tingkat Operator','127.0.0.1',NULL,'2026-02-11 18:21:14','2026-02-11 18:21:14'),(63,8,'Recruitment Team','create','question','Menambahkan soal ke bank: Test Tingkat Operator','127.0.0.1',NULL,'2026-02-11 18:22:27','2026-02-11 18:22:27'),(64,8,'Recruitment Team','update','subtest','Mengupdate sub-test: Tes Teknis','127.0.0.1',NULL,'2026-02-11 18:22:36','2026-02-11 18:22:36'),(65,8,'Recruitment Team','logout','auth','User Recruitment Team logout','127.0.0.1',NULL,'2026-02-11 20:09:40','2026-02-11 20:09:40'),(66,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-11 20:09:52','2026-02-11 20:09:52'),(67,2,'admin','logout','auth','User admin logout','127.0.0.1',NULL,'2026-02-11 20:19:03','2026-02-11 20:19:03'),(68,8,'Recruitment Team','login','auth','User Recruitment Team berhasil login','127.0.0.1',NULL,'2026-02-11 20:19:30','2026-02-11 20:19:30'),(69,8,'Recruitment Team','export','bank','Export hasil tes bank: Test Tingkat Operator','127.0.0.1',NULL,'2026-02-11 20:19:47','2026-02-11 20:19:47'),(70,8,'Recruitment Team','delete','bank','Menghapus bank soal: Test Tingkat Operator','127.0.0.1',NULL,'2026-02-11 20:22:49','2026-02-11 20:22:49'),(71,8,'Recruitment Team','create','bank','Membuat bank soal: Test Purpose Only - Soal Kenaikan Golongan','127.0.0.1',NULL,'2026-02-11 20:24:03','2026-02-11 20:24:03'),(72,8,'Recruitment Team','create','subtest','Menambahkan sub-test ke bank: Test Purpose Only - Soal Kenaikan Golongan','127.0.0.1',NULL,'2026-02-11 20:25:11','2026-02-11 20:25:11'),(73,8,'Recruitment Team','create','subtest','Menambahkan sub-test ke bank: Test Purpose Only - Soal Kenaikan Golongan','127.0.0.1',NULL,'2026-02-11 20:26:00','2026-02-11 20:26:00'),(74,8,'Recruitment Team','create','question','Menambahkan soal ke bank: Test Purpose Only - Soal Kenaikan Golongan','127.0.0.1',NULL,'2026-02-11 20:27:57','2026-02-11 20:27:57'),(75,8,'Recruitment Team','create','question','Menambahkan soal ke bank: Test Purpose Only - Soal Kenaikan Golongan','127.0.0.1',NULL,'2026-02-11 20:28:45','2026-02-11 20:28:45'),(76,8,'Recruitment Team','create','question','Menambahkan soal ke bank: Test Purpose Only - Soal Kenaikan Golongan','127.0.0.1',NULL,'2026-02-11 20:29:19','2026-02-11 20:29:19'),(77,8,'Recruitment Team','create','question','Menambahkan soal ke bank: Test Purpose Only - Soal Kenaikan Golongan','127.0.0.1',NULL,'2026-02-11 20:30:21','2026-02-11 20:30:21'),(78,8,'Recruitment Team','create','question','Menambahkan soal ke bank: Test Purpose Only - Soal Kenaikan Golongan','127.0.0.1',NULL,'2026-02-11 20:30:55','2026-02-11 20:30:55'),(79,8,'Recruitment Team','create','question','Menambahkan soal ke bank: Test Purpose Only - Soal Kenaikan Golongan','127.0.0.1',NULL,'2026-02-11 20:31:16','2026-02-11 20:31:16'),(80,8,'Recruitment Team','create','question','Menambahkan soal ke bank: Test Purpose Only - Soal Kenaikan Golongan','127.0.0.1',NULL,'2026-02-11 20:32:07','2026-02-11 20:32:07'),(81,8,'Recruitment Team','export','bank','Export hasil tes bank: Test Purpose Only - Soal Kenaikan Golongan','127.0.0.1',NULL,'2026-02-11 20:54:24','2026-02-11 20:54:24'),(82,8,'Recruitment Team','update','bank','Toggle bank soal Test Purpose Only - Soal Kenaikan Golongan: ditutup','127.0.0.1',NULL,'2026-02-11 20:57:36','2026-02-11 20:57:36'),(83,8,'Recruitment Team','update','bank','Toggle bank soal Test Purpose Only - Soal Kenaikan Golongan: dibuka','127.0.0.1',NULL,'2026-02-11 20:58:22','2026-02-11 20:58:22'),(84,8,'Recruitment Team','logout','auth','User Recruitment Team logout','127.0.0.1',NULL,'2026-02-11 21:07:34','2026-02-11 21:07:34'),(85,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-11 21:07:41','2026-02-11 21:07:41'),(86,2,'admin','export','bank','Export hasil tes bank: Test Purpose Only - Soal Kenaikan Golongan','127.0.0.1',NULL,'2026-02-11 21:14:50','2026-02-11 21:14:50'),(87,2,'admin','logout','auth','User admin logout','127.0.0.1',NULL,'2026-02-11 21:27:41','2026-02-11 21:27:41'),(88,8,'Recruitment Team','login','auth','User Recruitment Team berhasil login','127.0.0.1',NULL,'2026-02-11 21:27:51','2026-02-11 21:27:51'),(89,8,'Recruitment Team','logout','auth','User Recruitment Team logout','127.0.0.1',NULL,'2026-02-11 21:34:54','2026-02-11 21:34:54'),(90,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-11 21:38:01','2026-02-11 21:38:01'),(91,2,'admin','logout','auth','User admin logout','127.0.0.1',NULL,'2026-02-11 21:56:49','2026-02-11 21:56:49'),(92,8,'Recruitment Team','login','auth','User Recruitment Team berhasil login','127.0.0.1',NULL,'2026-02-11 21:58:04','2026-02-11 21:58:04'),(93,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-12 00:33:19','2026-02-12 00:33:19'),(94,2,'admin','create','employee','Menambahkan karyawan: Lorem Ipsum','127.0.0.1',NULL,'2026-02-12 00:37:07','2026-02-12 00:37:07'),(95,2,'admin','logout','auth','User admin logout','127.0.0.1',NULL,'2026-02-12 00:37:57','2026-02-12 00:37:57'),(96,8,'Recruitment Team','login','auth','User Recruitment Team berhasil login','127.0.0.1',NULL,'2026-02-12 00:38:06','2026-02-12 00:38:06'),(97,8,'Recruitment Team','login','auth','User Recruitment Team berhasil login','127.0.0.1',NULL,'2026-02-12 17:38:04','2026-02-12 17:38:04'),(98,8,'Recruitment Team','logout','auth','User Recruitment Team logout','127.0.0.1',NULL,'2026-02-12 17:42:28','2026-02-12 17:42:28'),(99,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-12 17:42:39','2026-02-12 17:42:39'),(100,2,'admin','create','question','Menambahkan soal ke bank: Test Purpose Only - Soal Kenaikan Golongan','127.0.0.1',NULL,'2026-02-12 17:53:06','2026-02-12 17:53:06'),(101,2,'admin','logout','auth','User admin logout','127.0.0.1',NULL,'2026-02-12 18:05:38','2026-02-12 18:05:38'),(102,8,'Recruitment Team','login','auth','User Recruitment Team berhasil login','127.0.0.1',NULL,'2026-02-12 18:05:49','2026-02-12 18:05:49'),(103,8,'Recruitment Team','logout','auth','User Recruitment Team logout','127.0.0.1',NULL,'2026-02-12 19:39:05','2026-02-12 19:39:05'),(104,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-12 19:39:11','2026-02-12 19:39:11'),(105,2,'admin','create','user','Menambahkan user: rafliaulia (superadmin)','127.0.0.1',NULL,'2026-02-12 19:40:09','2026-02-12 19:40:09'),(106,2,'admin','logout','auth','User admin logout','127.0.0.1',NULL,'2026-02-12 19:40:14','2026-02-12 19:40:14'),(107,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-12 19:40:48','2026-02-12 19:40:48'),(108,2,'admin','update','user','Mengupdate user: rafliaulia (superadmin)','127.0.0.1',NULL,'2026-02-12 19:41:14','2026-02-12 19:41:14'),(109,2,'admin','logout','auth','User admin logout','127.0.0.1',NULL,'2026-02-12 19:41:20','2026-02-12 19:41:20'),(110,9,'rafliaulia','login','auth','User rafliaulia berhasil login','127.0.0.1',NULL,'2026-02-12 19:46:08','2026-02-12 19:46:08'),(111,9,'rafliaulia','logout','auth','User rafliaulia logout','127.0.0.1',NULL,'2026-02-12 19:47:26','2026-02-12 19:47:26'),(112,9,'rafliaulia','login','auth','User rafliaulia berhasil login','127.0.0.1',NULL,'2026-02-12 19:48:46','2026-02-12 19:48:46'),(113,9,'rafliaulia','logout','auth','User rafliaulia logout','127.0.0.1',NULL,'2026-02-12 19:48:51','2026-02-12 19:48:51'),(114,9,'rafliaulia','login','auth','User rafliaulia berhasil login','127.0.0.1',NULL,'2026-02-12 19:48:59','2026-02-12 19:48:59'),(115,9,'rafliaulia','logout','auth','User rafliaulia logout','127.0.0.1',NULL,'2026-02-12 20:04:40','2026-02-12 20:04:40'),(116,8,'Recruitment Team','login','auth','User Recruitment Team berhasil login','127.0.0.1',NULL,'2026-02-12 20:04:53','2026-02-12 20:04:53'),(117,8,'Recruitment Team','create','task','Membuat task: Buat KPI Bulan Februari','127.0.0.1',NULL,'2026-02-12 20:14:22','2026-02-12 20:14:22'),(118,8,'Recruitment Team','logout','auth','User Recruitment Team logout','127.0.0.1',NULL,'2026-02-12 20:15:00','2026-02-12 20:15:00'),(119,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-12 20:16:12','2026-02-12 20:16:12'),(120,2,'admin','create','user','Menambahkan user: Manager (top_level_management)','127.0.0.1',NULL,'2026-02-12 20:16:46','2026-02-12 20:16:46'),(121,2,'admin','logout','auth','User admin logout','127.0.0.1',NULL,'2026-02-12 20:16:50','2026-02-12 20:16:50'),(122,10,'Manager','login','auth','User Manager berhasil login','127.0.0.1',NULL,'2026-02-12 20:16:55','2026-02-12 20:16:55'),(123,10,'Manager','logout','auth','User Manager logout','127.0.0.1',NULL,'2026-02-12 20:24:59','2026-02-12 20:24:59'),(124,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-12 20:25:06','2026-02-12 20:25:06'),(125,2,'admin','logout','auth','User admin logout','127.0.0.1',NULL,'2026-02-12 20:37:49','2026-02-12 20:37:49'),(126,8,'Recruitment Team','login','auth','User Recruitment Team berhasil login','127.0.0.1',NULL,'2026-02-12 20:37:59','2026-02-12 20:37:59'),(127,8,'Recruitment Team','create','task','Membuat task: Report','127.0.0.1',NULL,'2026-02-12 20:43:04','2026-02-12 20:43:04'),(128,8,'Recruitment Team','delete','task','Menghapus task: Report','127.0.0.1',NULL,'2026-02-12 20:45:58','2026-02-12 20:45:58'),(129,8,'Recruitment Team','create','task','Membuat task: asdasdasd','127.0.0.1',NULL,'2026-02-12 20:46:20','2026-02-12 20:46:20'),(130,8,'Recruitment Team','update','task','Mengupdate task: asdasdasd','127.0.0.1',NULL,'2026-02-12 20:49:51','2026-02-12 20:49:51'),(131,8,'Recruitment Team','update','task','Mengupdate task: asdasdasd','127.0.0.1',NULL,'2026-02-12 20:50:29','2026-02-12 20:50:29'),(132,8,'Recruitment Team','update','task','Mengupdate task: asdasdasd','127.0.0.1',NULL,'2026-02-12 20:50:33','2026-02-12 20:50:33'),(133,8,'Recruitment Team','delete','task','Menghapus task: asdasdasd','127.0.0.1',NULL,'2026-02-12 21:01:53','2026-02-12 21:01:53'),(134,8,'Recruitment Team','create','task','Membuat task: asadasd','127.0.0.1',NULL,'2026-02-12 21:02:19','2026-02-12 21:02:19'),(135,8,'Recruitment Team','logout','auth','User Recruitment Team logout','127.0.0.1',NULL,'2026-02-12 21:06:08','2026-02-12 21:06:08'),(136,10,'Manager','login','auth','User Manager berhasil login','127.0.0.1',NULL,'2026-02-12 21:06:20','2026-02-12 21:06:20'),(137,10,'Manager','logout','auth','User Manager logout','127.0.0.1',NULL,'2026-02-12 21:16:26','2026-02-12 21:16:26'),(138,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-12 21:16:35','2026-02-12 21:16:35'),(139,2,'admin','logout','auth','User admin logout','127.0.0.1',NULL,'2026-02-12 21:28:55','2026-02-12 21:28:55'),(140,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-12 21:30:02','2026-02-12 21:30:02'),(141,2,'admin','login','auth','User admin berhasil login','127.0.0.1',NULL,'2026-02-12 23:05:59','2026-02-12 23:05:59');
+/*!40000 ALTER TABLE `activity_logs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `banks`
+--
+
+DROP TABLE IF EXISTS `banks`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `banks` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `duration_minutes` int unsigned DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  `slug` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `banks_slug_unique` (`slug`),
+  KEY `banks_user_id_foreign` (`user_id`),
+  CONSTRAINT `banks_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `banks`
+--
+
+LOCK TABLES `banks` WRITE;
+/*!40000 ALTER TABLE `banks` DISABLE KEYS */;
+INSERT INTO `banks` VALUES (26,8,'Test Purpose Only - Soal Kenaikan Golongan','Soal ini hanya untuk keperluan test system - Folder Soal Kenaikan Golongan',NULL,1,'test-purpose-only-soal-kenaikan-golongan-698d47d337411','2026-02-11 20:24:03','2026-02-11 20:58:22');
+/*!40000 ALTER TABLE `banks` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cache`
+--
+
+DROP TABLE IF EXISTS `cache`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cache` (
+  `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `value` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `expiration` int NOT NULL,
+  PRIMARY KEY (`key`),
+  KEY `cache_expiration_index` (`expiration`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cache`
+--
+
+LOCK TABLES `cache` WRITE;
+/*!40000 ALTER TABLE `cache` DISABLE KEYS */;
+INSERT INTO `cache` VALUES ('hrissdi-cache-5c785c036466adea360111aa28563bfd556b5fba','i:1;',1770962818),('hrissdi-cache-5c785c036466adea360111aa28563bfd556b5fba:timer','i:1770962818;',1770962818);
+/*!40000 ALTER TABLE `cache` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cache_locks`
+--
+
+DROP TABLE IF EXISTS `cache_locks`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cache_locks` (
+  `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `owner` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `expiration` int NOT NULL,
+  PRIMARY KEY (`key`),
+  KEY `cache_locks_expiration_index` (`expiration`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cache_locks`
+--
+
+LOCK TABLES `cache_locks` WRITE;
+/*!40000 ALTER TABLE `cache_locks` DISABLE KEYS */;
+/*!40000 ALTER TABLE `cache_locks` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `departments`
+--
+
+DROP TABLE IF EXISTS `departments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `departments` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `departments_name_unique` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `departments`
+--
+
+LOCK TABLES `departments` WRITE;
+/*!40000 ALTER TABLE `departments` DISABLE KEYS */;
+INSERT INTO `departments` VALUES (1,'HR','2026-02-05 23:40:11','2026-02-05 23:40:11'),(2,'FA','2026-02-09 19:09:25','2026-02-09 19:09:25'),(3,'GA','2026-02-09 19:09:37','2026-02-09 19:09:37'),(4,'INTERPRETER','2026-02-09 19:09:47','2026-02-09 19:09:47'),(5,'IT','2026-02-09 19:09:52','2026-02-09 19:09:52'),(6,'PC','2026-02-09 19:09:58','2026-02-09 19:09:58'),(7,'PROD','2026-02-09 19:10:06','2026-02-09 19:10:06'),(8,'QA','2026-02-09 19:10:13','2026-02-09 19:10:13'),(9,'SAL','2026-02-09 19:10:18','2026-02-09 19:10:18'),(10,'TEC','2026-02-09 19:10:23','2026-02-09 19:10:23');
+/*!40000 ALTER TABLE `departments` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `employees`
+--
+
+DROP TABLE IF EXISTS `employees`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `employees` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `nama` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `jabatan` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status` enum('kontrak','tetap') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'kontrak',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `nik` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `gol` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `dept` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `seksi` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tempat_lahir` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tgl_lahir` date DEFAULT NULL,
+  `gol_darah` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `alamat_domisili` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status_tempat_tinggal` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `no_telpon` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `no_wa` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `kontak_darurat` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tgl_masuk` date DEFAULT NULL,
+  `bulan_masuk` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tahun_masuk` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status_karyawan` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status_pph` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `end_pkwt_1` date DEFAULT NULL,
+  `end_pkwt_2` date DEFAULT NULL,
+  `tgl_pengangkatan` date DEFAULT NULL,
+  `tgl_sekarang` date DEFAULT NULL,
+  `masa_kerja` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usia` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `npwp` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `jamsostek` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `no_kpj_bpjstk` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `no_kk` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ktp` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `alamat_email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status_perkawinan` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status_perkawinan_excel` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `pendidikan` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `asal_sekolah` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ar` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `end` date DEFAULT NULL,
+  `bulan_end` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status_aktif` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `alamat_npwp` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `alamat_asal` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `agama` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `asal_kota` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `alamat_domisili_kecamatan` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `area_asal_kecamatan` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `area_asal` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `employees_user_id_foreign` (`user_id`),
+  CONSTRAINT `employees_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `employees`
+--
+
+LOCK TABLES `employees` WRITE;
+/*!40000 ALTER TABLE `employees` DISABLE KEYS */;
+INSERT INTO `employees` VALUES (11,2,'Lorem Ipsum','Staff','kontrak','2026-02-12 00:37:07','2026-02-12 00:37:07','0000','1','HR',NULL,'Bekasi','2003-12-12','O','Jl. Jalan','Rumah Sendiri','00008888123123','000123123891238','Istri','2018-02-22','Februari','2018','TETAP','TETAP',NULL,NULL,'2026-06-22','2026-02-12',NULL,'27','32123123123123','1231431231','1231232123','321123123124','12314131132421234','LoremIpsum@gmail.com','Nikah','K1','S1','Universitas Universitas',NULL,NULL,NULL,'AKTIF','Jl. Jalan','Jl. Jalan','Islam','Bekasi','Jl. Jalan','Cikarang Barat','Bekasi');
+/*!40000 ALTER TABLE `employees` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `failed_jobs`
+--
+
+DROP TABLE IF EXISTS `failed_jobs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `failed_jobs` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `uuid` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `connection` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `queue` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `payload` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `exception` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `failed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `failed_jobs`
+--
+
+LOCK TABLES `failed_jobs` WRITE;
+/*!40000 ALTER TABLE `failed_jobs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `failed_jobs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `families`
+--
+
+DROP TABLE IF EXISTS `families`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `families` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `employee_id` bigint unsigned NOT NULL,
+  `nama` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `hubungan` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tanggal_lahir` date DEFAULT NULL,
+  `pekerjaan` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `alamat` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `families_employee_id_foreign` (`employee_id`),
+  CONSTRAINT `families_employee_id_foreign` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `families`
+--
+
+LOCK TABLES `families` WRITE;
+/*!40000 ALTER TABLE `families` DISABLE KEYS */;
+/*!40000 ALTER TABLE `families` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `job_batches`
+--
+
+DROP TABLE IF EXISTS `job_batches`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `job_batches` (
+  `id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `total_jobs` int NOT NULL,
+  `pending_jobs` int NOT NULL,
+  `failed_jobs` int NOT NULL,
+  `failed_job_ids` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `options` mediumtext COLLATE utf8mb4_unicode_ci,
+  `cancelled_at` int DEFAULT NULL,
+  `created_at` int NOT NULL,
+  `finished_at` int DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `job_batches`
+--
+
+LOCK TABLES `job_batches` WRITE;
+/*!40000 ALTER TABLE `job_batches` DISABLE KEYS */;
+/*!40000 ALTER TABLE `job_batches` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `jobs`
+--
+
+DROP TABLE IF EXISTS `jobs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `jobs` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `queue` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `payload` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `attempts` tinyint unsigned NOT NULL,
+  `reserved_at` int unsigned DEFAULT NULL,
+  `available_at` int unsigned NOT NULL,
+  `created_at` int unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `jobs_queue_index` (`queue`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `jobs`
+--
+
+LOCK TABLES `jobs` WRITE;
+/*!40000 ALTER TABLE `jobs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `jobs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `migrations`
+--
+
+DROP TABLE IF EXISTS `migrations`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `migrations` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `migration` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `batch` int NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `migrations`
+--
+
+LOCK TABLES `migrations` WRITE;
+/*!40000 ALTER TABLE `migrations` DISABLE KEYS */;
+INSERT INTO `migrations` VALUES (1,'0001_01_01_000000_create_users_table',1),(2,'0001_01_01_000001_create_cache_table',1),(3,'0001_01_01_000002_create_jobs_table',1),(4,'2026_02_05_000000_create_banks_table',2),(5,'2026_02_05_000001_create_questions_table',2),(6,'2026_02_05_000002_create_participant_responses_table',2),(7,'2026_02_05_000003_add_media_to_questions_table',3),(8,'2026_02_05_000004_create_employees_table',4),(9,'2026_02_05_000004_make_question_options_nullable',5),(10,'2026_02_05_000005_add_position_to_participant_responses',6),(11,'2026_02_05_000006_add_is_active_to_participant_responses',7),(12,'2026_02_05_000007_move_is_active_to_banks',8),(13,'2026_02_06_000001_add_full_fields_to_employees_table',9),(14,'2026_02_06_061432_create_departments_table',10),(15,'2026_02_06_000001_create_families_table',11),(16,'2026_02_09_000001_fix_participant_email_unique_constraint',12),(17,'2026_02_09_000002_create_warning_letters_table',13),(18,'2026_02_09_100000_add_role_to_users_table',14),(19,'2026_02_09_200000_add_esign_to_warning_letters_table',15),(20,'2026_02_10_100000_add_duration_to_banks_table',16),(21,'2026_02_10_200000_add_survey_type_to_questions_table',17),(22,'2026_02_10_300000_create_activity_logs_table',18),(23,'2026_02_10_400000_make_jabatan_nullable_in_employees_table',19),(24,'2026_02_10_500000_update_warning_letters_5layer_esign',20),(25,'2026_02_11_000001_create_sub_tests_table',21),(26,'2026_02_12_000001_add_violation_tracking_to_participant_responses',22),(27,'2026_02_12_000002_add_nik_department_to_participant_responses',23),(28,'2026_02_12_000003_add_phone_and_nullable_email_to_participant_responses',24),(29,'2026_02_13_000001_add_option_images_to_questions_table',25),(30,'2026_02_13_000001_create_tasks_table',26),(31,'2026_02_13_000002_create_task_checklists_table',26),(32,'2026_02_13_000003_create_task_comments_table',26),(33,'2026_02_13_000004_create_task_attachments_table',26),(34,'2026_02_13_000005_add_time_fields_to_tasks_table',27);
+/*!40000 ALTER TABLE `migrations` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `participant_responses`
+--
+
+DROP TABLE IF EXISTS `participant_responses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `participant_responses` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `bank_id` bigint unsigned NOT NULL,
+  `nik` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `participant_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `participant_email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `phone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `position` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `department` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `responses` json DEFAULT NULL,
+  `score` int NOT NULL DEFAULT '0',
+  `completed` tinyint(1) NOT NULL DEFAULT '0',
+  `started_at` timestamp NULL DEFAULT NULL,
+  `completed_at` timestamp NULL DEFAULT NULL,
+  `violation_count` int NOT NULL DEFAULT '0',
+  `violation_log` json DEFAULT NULL,
+  `anti_cheat_note` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `participant_responses_token_unique` (`token`),
+  UNIQUE KEY `participant_responses_bank_email_unique` (`bank_id`,`participant_email`),
+  CONSTRAINT `participant_responses_bank_id_foreign` FOREIGN KEY (`bank_id`) REFERENCES `banks` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `participant_responses`
+--
+
+LOCK TABLES `participant_responses` WRITE;
+/*!40000 ALTER TABLE `participant_responses` DISABLE KEYS */;
+INSERT INTO `participant_responses` VALUES (46,26,'6579','Muhammad Rafli Aulia','muhammrafli@gmail.com','085156578449','Chief Staff','HR','onb1k1r7SOtBp5VByhYzoiteHmsw3Uum','{\"36\": \"A\", \"37\": \"B\", \"38\": \"A\", \"39\": \"B\", \"40\": \"A\", \"41\": \"Ini adalah gambar\"}',1,1,'2026-02-11 20:46:38','2026-02-11 20:52:19',1,'[{\"time\": \"2026-02-12T03:50:42.999Z\", \"type\": \"Anda terdeteksi meninggalkan jendela ujian.\", \"count\": 1}]','Peserta submit manual dengan 1 pelanggaran','2026-02-11 20:46:38','2026-02-11 20:52:19'),(47,26,'657890','Asdasdasdasdasd','muhammrafli12@gmail.commmmmmmmmmmmmm','08123123123','ASdasd','GA','CCrKpZCLlhHhajvfo1HLSZbA09ctDC4W','{\"36\": \"A\", \"37\": \"B\", \"38\": \"A\", \"39\": \"A\", \"40\": \"A\", \"41\": \"asdasdasdasd\"}',2,1,'2026-02-11 21:13:59','2026-02-11 21:14:31',1,'[{\"time\": \"2026-02-12T04:14:07.338Z\", \"type\": \"Anda terdeteksi meninggalkan jendela ujian.\", \"count\": 1}]','Peserta submit manual dengan 1 pelanggaran','2026-02-11 21:13:59','2026-02-11 21:14:31'),(48,26,'123123','kay','kay@gmail.comasda','085156578449','staff','SAL','pDLiJmvl9y09UeYHcdefPgE0TjBacV0O','{\"36\": \"A\", \"37\": \"B\", \"38\": \"A\", \"39\": \"A\", \"40\": \"B\", \"41\": \"asdasdasd\"}',1,1,'2026-02-11 21:20:22','2026-02-11 21:20:56',0,'[]',NULL,'2026-02-11 21:20:22','2026-02-11 21:20:56'),(49,26,'12313','asdasdasd','misadadsa@gmail.comasdasd','071213123','Chief Staff','FA','9oZrtAD1zDSx2R7zOIwxbpSnMksRFcbc','{\"36\": \"B\", \"37\": \"B\", \"38\": \"A\", \"39\": \"A\", \"40\": \"A\", \"41\": \"asdasdasdad\"}',2,1,'2026-02-11 21:29:54','2026-02-11 21:30:23',0,'[]',NULL,'2026-02-11 21:29:54','2026-02-11 21:30:23'),(50,26,'657800','Rafliaulia','masdadsa@gmail.com','0851253612312','Operator','HR','9CgjicChnE4H5AQ41uZpMsFuHYAk6sgm',NULL,0,0,'2026-02-11 21:59:42',NULL,0,NULL,NULL,'2026-02-11 21:59:42','2026-02-11 21:59:42'),(51,26,'6579','Muhammad Rafli Aulia','muhammrafli12@gmail.com','085156578449','Chief Staff','HR','pIiH3aQM6X6OaOHTAOA0fDbmTwJENHvQ','{\"36\": \"A\", \"37\": \"B\", \"38\": \"B\", \"39\": \"C\", \"40\": \"C\", \"41\": \"adsadsasd\"}',0,1,'2026-02-12 01:30:52','2026-02-12 01:34:15',2,'[{\"time\": \"2026-02-12T08:32:20.339Z\", \"type\": \"Screenshot terdeteksi (PrintScreen). Screenshot tidak diizinkan selama ujian.\", \"count\": 1}, {\"time\": \"2026-02-12T08:32:36.242Z\", \"type\": \"Anda terdeteksi meninggalkan jendela ujian.\", \"count\": 2}]','Peserta submit manual dengan 2 pelanggaran','2026-02-12 01:30:52','2026-02-12 01:34:15'),(52,26,'123123','asdadsasd','asdada@gasadadads.com','123123123123','Staff','HR','e3s5BXhCaUv0bXgIePuLBq7FebQkIrOT','{\"36\": \"B\", \"37\": \"A\", \"38\": \"A\", \"39\": \"B\", \"40\": \"A\", \"41\": \"Logo Shindengen\", \"42\": \"A\"}',2,1,'2026-02-12 17:53:46','2026-02-12 17:54:35',0,'[]',NULL,'2026-02-12 17:53:46','2026-02-12 17:54:35');
+/*!40000 ALTER TABLE `participant_responses` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `password_reset_tokens`
+--
+
+DROP TABLE IF EXISTS `password_reset_tokens`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `password_reset_tokens` (
+  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `password_reset_tokens`
+--
+
+LOCK TABLES `password_reset_tokens` WRITE;
+/*!40000 ALTER TABLE `password_reset_tokens` DISABLE KEYS */;
+/*!40000 ALTER TABLE `password_reset_tokens` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `questions`
+--
+
+DROP TABLE IF EXISTS `questions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `questions` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `bank_id` bigint unsigned NOT NULL,
+  `sub_test_id` bigint unsigned DEFAULT NULL,
+  `question` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `option_a` text COLLATE utf8mb4_unicode_ci,
+  `option_a_image` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `option_b` text COLLATE utf8mb4_unicode_ci,
+  `option_b_image` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `option_c` text COLLATE utf8mb4_unicode_ci,
+  `option_c_image` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `option_d` text COLLATE utf8mb4_unicode_ci,
+  `option_d_image` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `option_e` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `option_count` tinyint unsigned DEFAULT NULL,
+  `correct_answer` char(1) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `order` int NOT NULL DEFAULT '0',
+  `is_example` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'multiple_choice',
+  `image` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `audio` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `correct_answer_text` text COLLATE utf8mb4_unicode_ci,
+  PRIMARY KEY (`id`),
+  KEY `questions_bank_id_foreign` (`bank_id`),
+  KEY `questions_sub_test_id_foreign` (`sub_test_id`),
+  CONSTRAINT `questions_bank_id_foreign` FOREIGN KEY (`bank_id`) REFERENCES `banks` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `questions_sub_test_id_foreign` FOREIGN KEY (`sub_test_id`) REFERENCES `sub_tests` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `questions`
+--
+
+LOCK TABLES `questions` WRITE;
+/*!40000 ALTER TABLE `questions` DISABLE KEYS */;
+INSERT INTO `questions` VALUES (35,26,3,'Cara mengerjakan : Pilihlah salah satu yang paling sesuai dengan anda.\r\n\r\n1. Saya pekerja keras\r\n2. Saya Menaruh barang pada tempatnya','1',NULL,'2',NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,0,1,'2026-02-11 20:27:56','2026-02-11 20:27:56','survey',NULL,NULL,NULL),(36,26,3,'1. Saya senang bekerja dengan tim\r\n2. Saya mengerjakan suatu hal dengan teliti','1',NULL,'2',NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,1,0,'2026-02-11 20:28:45','2026-02-11 20:28:45','survey',NULL,NULL,NULL),(37,26,3,'1. Saya berorientasi pada hasil\r\n2. Saya Menaruh barang pada tempatnya','1',NULL,'2',NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,2,0,'2026-02-11 20:29:19','2026-02-11 20:29:19','survey',NULL,NULL,NULL),(38,26,3,'1. Saya harus mengerjakan sesuatu sampai selesai\r\n2. Peraturan adalah formalitas','1',NULL,'2',NULL,NULL,NULL,NULL,NULL,NULL,2,NULL,3,0,'2026-02-11 20:30:21','2026-02-11 20:30:21','survey',NULL,NULL,NULL),(39,26,4,'Ada berapa jumlah kaki kamu?','1',NULL,'2',NULL,'3',NULL,'4',NULL,NULL,NULL,'A',0,0,'2026-02-11 20:30:55','2026-02-11 20:30:55','multiple_choice',NULL,NULL,NULL),(40,26,4,'Ada berapa jumlah jari kamu?','10',NULL,'20',NULL,'500',NULL,'1000',NULL,NULL,NULL,'A',1,0,'2026-02-11 20:31:16','2026-02-11 20:31:16','multiple_choice',NULL,NULL,NULL),(41,26,4,'Jelaskan apa yang dimaksud dengan gambar diatas?',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,2,0,'2026-02-11 20:32:07','2026-02-11 20:32:07','narrative','questions/images/eQGIPg99kN70cyUnn1Fz4ncJvDTg33xs4azNDESq.png',NULL,NULL),(42,26,3,'sadasdasdad','A','questions/option-images/rE6YYcdOWu18z54TpkaH8jzgkNa2PaWN1m4pC0mC.png','B','questions/option-images/Q4eMWENjA1KGKkLUNZaVy9mToFnTDYOGmimdmcU2.png','C','questions/option-images/cMLfKX9lxcwLjs2xknwtzA9BqLQTtRmLXYLj8FRd.png','D','questions/option-images/hVsRBOfXf2Mi30a5J7t3MdPNfC41ALDJREQjhp99.png',NULL,NULL,'A',4,0,'2026-02-12 17:53:06','2026-02-12 17:53:06','multiple_choice',NULL,NULL,NULL);
+/*!40000 ALTER TABLE `questions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `sessions`
+--
+
+DROP TABLE IF EXISTS `sessions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `sessions` (
+  `id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_id` bigint unsigned DEFAULT NULL,
+  `ip_address` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_agent` text COLLATE utf8mb4_unicode_ci,
+  `payload` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `last_activity` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `sessions_user_id_index` (`user_id`),
+  KEY `sessions_last_activity_index` (`last_activity`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sessions`
+--
+
+LOCK TABLES `sessions` WRITE;
+/*!40000 ALTER TABLE `sessions` DISABLE KEYS */;
+INSERT INTO `sessions` VALUES ('70dMsR72ctRGf4ikQuA6lFgavaPBJct5oothUbq2',2,'127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0','YTo0OntzOjY6Il90b2tlbiI7czo0MDoiTGVDQUM1NXhvOUZIdE4yUWcyeGFPZWpGSE5LOE9wSDFPTVhxOHNKciI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzU6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9ocmlzc2RpL3VzZXJzIjt9czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6Mjt9',1770958245),('acBWAt1bZigdH3j6YQDgwbJDWmz9x504GcgXvd9m',2,'127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0','YTo0OntzOjY6Il90b2tlbiI7czo0MDoiTGU4YlNOSWNDeE52YVRnTlpQU0lRYmJEQjVIdTdIMTNCS3VmZ0xIQyI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6NDM6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9ocmlzc2RpL2FjdGl2aXR5LWxvZ3MiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToyO30=',1770962786);
+/*!40000 ALTER TABLE `sessions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `sub_tests`
+--
+
+DROP TABLE IF EXISTS `sub_tests`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `sub_tests` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `bank_id` bigint unsigned NOT NULL,
+  `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `order` int NOT NULL DEFAULT '0',
+  `duration_minutes` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `sub_tests_bank_id_foreign` (`bank_id`),
+  CONSTRAINT `sub_tests_bank_id_foreign` FOREIGN KEY (`bank_id`) REFERENCES `banks` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sub_tests`
+--
+
+LOCK TABLES `sub_tests` WRITE;
+/*!40000 ALTER TABLE `sub_tests` DISABLE KEYS */;
+INSERT INTO `sub_tests` VALUES (3,26,'Psikotest','Tipe soal psikotest - (System Test Purpose Only)',0,30,'2026-02-11 20:25:11','2026-02-11 20:25:11'),(4,26,'Technical Test','Tipe Soal Technical (System Test Purpose Only)',1,45,'2026-02-11 20:26:00','2026-02-11 20:26:00');
+/*!40000 ALTER TABLE `sub_tests` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `task_attachments`
+--
+
+DROP TABLE IF EXISTS `task_attachments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `task_attachments` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `task_id` bigint unsigned NOT NULL,
+  `user_id` bigint unsigned NOT NULL,
+  `file_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `file_path` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `file_type` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `task_attachments_task_id_foreign` (`task_id`),
+  KEY `task_attachments_user_id_foreign` (`user_id`),
+  CONSTRAINT `task_attachments_task_id_foreign` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `task_attachments_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `task_attachments`
+--
+
+LOCK TABLES `task_attachments` WRITE;
+/*!40000 ALTER TABLE `task_attachments` DISABLE KEYS */;
+/*!40000 ALTER TABLE `task_attachments` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `task_checklists`
+--
+
+DROP TABLE IF EXISTS `task_checklists`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `task_checklists` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `task_id` bigint unsigned NOT NULL,
+  `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `is_completed` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `task_checklists_task_id_foreign` (`task_id`),
+  CONSTRAINT `task_checklists_task_id_foreign` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `task_checklists`
+--
+
+LOCK TABLES `task_checklists` WRITE;
+/*!40000 ALTER TABLE `task_checklists` DISABLE KEYS */;
+/*!40000 ALTER TABLE `task_checklists` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `task_comments`
+--
+
+DROP TABLE IF EXISTS `task_comments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `task_comments` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `task_id` bigint unsigned NOT NULL,
+  `user_id` bigint unsigned NOT NULL,
+  `content` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `task_comments_task_id_foreign` (`task_id`),
+  KEY `task_comments_user_id_foreign` (`user_id`),
+  CONSTRAINT `task_comments_task_id_foreign` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `task_comments_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `task_comments`
+--
+
+LOCK TABLES `task_comments` WRITE;
+/*!40000 ALTER TABLE `task_comments` DISABLE KEYS */;
+/*!40000 ALTER TABLE `task_comments` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `tasks`
+--
+
+DROP TABLE IF EXISTS `tasks`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `tasks` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'todo',
+  `priority` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'medium',
+  `deadline` date DEFAULT NULL,
+  `task_date` date DEFAULT NULL,
+  `start_time` time DEFAULT NULL,
+  `end_time` time DEFAULT NULL,
+  `assigned_to` bigint unsigned DEFAULT NULL,
+  `created_by` bigint unsigned NOT NULL,
+  `position` int NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `tasks_assigned_to_foreign` (`assigned_to`),
+  KEY `tasks_created_by_foreign` (`created_by`),
+  CONSTRAINT `tasks_assigned_to_foreign` FOREIGN KEY (`assigned_to`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `tasks_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `tasks`
+--
+
+LOCK TABLES `tasks` WRITE;
+/*!40000 ALTER TABLE `tasks` DISABLE KEYS */;
+INSERT INTO `tasks` VALUES (1,'Buat KPI Bulan Februari','Report','todo','medium','2026-02-14',NULL,NULL,NULL,9,8,1,'2026-02-12 20:14:22','2026-02-12 20:14:22'),(4,'asadasd',NULL,'todo','medium','2026-02-13','2026-02-13','09:00:00','14:00:00',NULL,8,0,'2026-02-12 21:02:19','2026-02-12 21:02:19');
+/*!40000 ALTER TABLE `tasks` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `users`
+--
+
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `users` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `role` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'superadmin',
+  `email_verified_at` timestamp NULL DEFAULT NULL,
+  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `remember_token` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `users_email_unique` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `users`
+--
+
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+INSERT INTO `users` VALUES (1,'Test User','test@example.com','superadmin','2026-02-04 21:44:12','$2y$12$7PJ31rw9sWuDJZoS1sCRTuBZARtohcS/iA4JmIDouzE.sUzRq3l.W','C7ZyG93tM4','2026-02-04 21:44:13','2026-02-04 21:44:13'),(2,'admin','admin','superadmin',NULL,'$2y$12$HGTCZs9i3RfihVaG6U9Ii.hzYHCFvSnpJzUE2HxR1V8YiU45mT.Ry',NULL,'2026-02-04 21:44:13','2026-02-04 21:44:13'),(7,'Admin Production','adminprod','admin_prod',NULL,'$2y$10$/TTyYEww4FSCsDc7Vm19ye4A3zOj5G5rDP1I6gZqC9vY4plbmQBoW',NULL,'2026-02-09 00:08:38','2026-02-09 00:08:38'),(8,'Recruitment Team','recruitmentsdi','recruitmentteam',NULL,'$2y$10$RCXU2xbTIN7.rdcoxoJB5u2P0IqJwYBgC4v1JJDuoyGTsPG5cBvLu',NULL,'2026-02-10 18:43:33','2026-02-10 18:43:33'),(9,'rafliaulia','muhammrafli12@gmail.com','superadmin',NULL,'$2y$10$hBS5KyJ1CzoF99RPAUKPVOrXyPLHJ61X3DuxQrDaxok.wzkc6OhH6',NULL,'2026-02-12 19:40:09','2026-02-12 19:41:14'),(10,'Manager','manager12@gmail.com','top_level_management',NULL,'$2y$10$6VR5CkgQCLyiL9avUgtjDOdkhLqNylK5OY0/JMegVSuh9tM5N0CxW',NULL,'2026-02-12 20:16:46','2026-02-12 20:16:46');
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `warning_letters`
+--
+
+DROP TABLE IF EXISTS `warning_letters`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `warning_letters` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `nama` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `nik` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `jabatan` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `departemen` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `alasan` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `paragraf_kedua` text COLLATE utf8mb4_unicode_ci,
+  `sp_level` tinyint NOT NULL COMMENT '1=SP1, 2=SP2, 3=SP3',
+  `nomor_surat` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tanggal_surat` date DEFAULT NULL,
+  `status` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
+  `approved_by` bigint unsigned DEFAULT NULL,
+  `approved_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `signer_name_1` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `signer_jabatan_1` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `signature_1` longtext COLLATE utf8mb4_unicode_ci,
+  `signer_name_2` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `signer_jabatan_2` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `signature_2` longtext COLLATE utf8mb4_unicode_ci,
+  `signer_name_3` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `signer_jabatan_3` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `signature_3` longtext COLLATE utf8mb4_unicode_ci,
+  `signer_name_4` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `signer_jabatan_4` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `signature_4` longtext COLLATE utf8mb4_unicode_ci,
+  `signer_name_5` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `signer_jabatan_5` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `signature_5` longtext COLLATE utf8mb4_unicode_ci,
+  PRIMARY KEY (`id`),
+  KEY `warning_letters_user_id_foreign` (`user_id`),
+  KEY `warning_letters_approved_by_foreign` (`approved_by`),
+  CONSTRAINT `warning_letters_approved_by_foreign` FOREIGN KEY (`approved_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `warning_letters_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `warning_letters`
+--
+
+LOCK TABLES `warning_letters` WRITE;
+/*!40000 ALTER TABLE `warning_letters` DISABLE KEYS */;
+/*!40000 ALTER TABLE `warning_letters` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-02-13 13:13:09
