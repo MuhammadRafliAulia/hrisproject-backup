@@ -10,7 +10,7 @@ class Bank extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'title', 'description', 'slug', 'is_active', 'duration_minutes'];
+    protected $fillable = ['user_id', 'title', 'description', 'slug', 'is_active', 'duration_minutes', 'category'];
 
     protected static function boot()
     {

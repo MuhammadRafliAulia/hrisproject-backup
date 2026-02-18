@@ -68,6 +68,14 @@
  </div>
  @error('duration_minutes')<div class="error">{{ $message }}</div>@enderror
  </div>
+ <div class="form-group">
+ <label for="category">Kategori Peserta</label>
+ <select id="category" name="category">
+	 <option value="calon_karyawan" {{ $bank->category === 'calon_karyawan' ? 'selected' : '' }}>Calon Karyawan</option>
+	 <option value="karyawan" {{ $bank->category === 'karyawan' ? 'selected' : '' }}>Karyawan</option>
+ </select>
+ @error('category')<div class="error">{{ $message }}</div>@enderror
+ </div>
  <button type="submit" class="btn">Simpan</button>
  </form>
  </div>

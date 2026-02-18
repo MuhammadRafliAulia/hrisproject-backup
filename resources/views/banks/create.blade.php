@@ -37,6 +37,13 @@
       </div>
       @error('duration_minutes')<div class="error">{{ $message }}</div>@enderror
 
+      <label for="category">Kategori Peserta</label>
+      <select id="category" name="category" required>
+        <option value="calon_karyawan" {{ old('category') === 'calon_karyawan' ? 'selected' : '' }}>Calon Karyawan</option>
+        <option value="karyawan" {{ old('category') === 'karyawan' ? 'selected' : '' }}>Karyawan</option>
+      </select>
+      @error('category')<div class="error">{{ $message }}</div>@enderror
+
       <div>
         <button type="submit" class="btn">Buat Bank Soal</button>
         <a href="{{ route('banks.index') }}" class="btn btn-cancel" style="text-decoration:none;">Batal</a>

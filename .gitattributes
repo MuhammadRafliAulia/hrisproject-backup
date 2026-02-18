@@ -1,11 +1,32 @@
+# Pastikan semua file teks pakai LF (bukan CRLF)
 * text=auto eol=lf
 
-*.blade.php diff=html
-*.css diff=css
-*.html diff=html
-*.md diff=markdown
-*.php diff=php
+# PHP, JS, CSS, JSON, HTML → selalu pakai LF
+*.php text eol=lf
+*.js  text eol=lf
+*.css text eol=lf
+*.json text eol=lf
+*.html text eol=lf
+*.vue text eol=lf
 
-/.github export-ignore
-CHANGELOG.md export-ignore
-.styleci.yml export-ignore
+# File konfigurasi
+*.env text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# File Markdown & dokumentasi
+*.md text eol=lf
+
+# File binary → jangan diubah line endings
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+
+# Composer lock & package lock → tetap LF
+composer.lock text eol=lf
+package-lock.json text eol=lf

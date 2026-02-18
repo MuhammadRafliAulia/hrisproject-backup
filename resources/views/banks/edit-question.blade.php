@@ -55,6 +55,8 @@
  @error('question')<div class="error">{{ $message }}</div>@enderror
  </div>
 
+
+
  <div class="form-group">
  <label for="type">Tipe Soal *</label>
  <select id="type" name="type" required onchange="toggleOptions()">

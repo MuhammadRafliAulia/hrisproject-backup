@@ -195,6 +195,8 @@
  <textarea id="question" name="question" rows="3" placeholder="Masukkan soal..." required></textarea>
  </div>
 
+ 
+
  <div class="form-group">
  <label for="image">Gambar (opsional)</label>
  <input id="image" type="file" name="image" accept="image/*">

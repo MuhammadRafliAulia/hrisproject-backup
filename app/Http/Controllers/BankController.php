@@ -52,6 +52,7 @@ class BankController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'duration_minutes' => 'nullable|integer|min:1|max:600',
+            'category' => 'required|in:calon_karyawan,karyawan',
         ]);
 
         $bank = Bank::create(array_merge($validated, ['user_id' => Auth::id()]));
@@ -180,6 +181,7 @@ class BankController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'duration_minutes' => 'nullable|integer|min:1|max:600',
+            'category' => 'required|in:calon_karyawan,karyawan',
         ]);
 
         $bank->update($validated);
